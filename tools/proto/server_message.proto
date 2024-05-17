@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package message_type;
+
+enum category_login_route {
+        UPDATE_ROUTE_LOAD = 0; // 更新路由负载
+        REQUEST_ALLOCATE_ROUTE = 5; // 请求分配路由
+        ALLOCATE_SUCCESS_ROUTE = 1; // 分配成功
+        ALLOCATE_FAIL_ROUTE = 2; // 分配失败
+        ROUTE_JOIN = 3; // 新路由加入
+        ROUTE_LEAVE = 4; // 现有路由离线
+        LOGIN_SERVER_INFO = 6; // 登录服务器信息
+}
+
+enum category_route_session {
+        UPDATE_SERVER_LOAD = 0; // 更新服务器负载
+        SESSION_SERVER_INFO = 4; // 会话服务器信息
+}
+
+enum category_route_route {
+        SERVER_INFO = 0; // 服务器信息(host port)
+}
+
+enum category_route_control {
+
+}
+
+message login_route {
+        category_login_route category = 1; // 消息类别
+        int32 route_load = 2; // 路由服务器负载
+        string token = 3;
+        string host = 5; // 会话、路由服务器地址
+        int32 port = 6; //会话、路由服务器端口
+        string session_id = 4; // 登录服务器的会话ID
+}
+
+message route_session {
+        category_route_session category = 1; // 消息类别
+        int32 server_load = 2; // 消息服务器负载
+        string token = 3;
+        string host = 4; // 消息服务器地址
+        int32 port = 5; // 消息服务器端口
+        string host_uid = 6; // 路由服务器中使用的登录服务器会话唯一标识
+        string session_id = 7; // 登录服务器的会话ID
+}
+
+message route_route {
+        category_route_route category = 1; // 消息类别
+        string host = 2; // 路由服务器地址
+        int32 port = 3; // 路由服务器监听端口
+}
+

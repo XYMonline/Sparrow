@@ -1,0 +1,6 @@
+#pragma once
+#ifndef SPARROW_LOAD_BALANCER_HPP
+#define SPARROW_LOAD_BALANCER_HPP
+
+
+#endif // !SPARROW_LOAD_BALANCER_HPP

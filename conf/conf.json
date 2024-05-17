@@ -1,0 +1,20 @@
+{
+  "host": "127.0.0.1",
+  "login_client_port_range": [ 12300, 12399 ],
+  "route_login_port_range": [ 12400, 12449 ],
+  "route_route_port_range": [ 12500, 12599 ],
+  "route_business_port_range": [ 12600, 12699 ],
+  "route_controler_port_range": [ 12700, 12799 ],
+  "business_client_port_range": [ 12800, 12899 ],
+  "work_thread_num": 16,
+  "doc_root": "",
+  "preload_user_info_limit": 500,
+  "cert_path": "../conf/ca/cert_chain.pem",
+  "private_key_path": "../conf/ca/private_key.pem",
+  "dh_path": "../conf/ca/dh_params.pem",
+  "db_host": "127.0.0.1",
+  "db_port": 3306,
+  "db_name": "sparrow",
+  "cache_host": "127.0.0.7",
+  "cache_port": 6379
+}

@@ -13,6 +13,22 @@
 #include <print>
 
 namespace leo {
+;
+struct connect_config {
+	std::string					db_host;
+	std::string					db_name;
+	std::string					db_user;
+	std::string					db_password;
+	std::string					cache_user;
+	std::string					cache_password;
+	std::string					cert_path;
+	std::string					key_path;
+	std::string					dh_path;
+	uint16_t					db_port;
+	redis::ConnectionOptions	options;
+};
+
+connect_config connect_config_init();
 
 template<typename Derived>
 class server {
@@ -26,6 +42,7 @@ protected:
 	cache_service cache_;
 	storage_service storage_;
 	cancellation_signals signals_;
+	std::string uri_;
 
 public:
 	server(net::io_context& ioc)
@@ -37,33 +54,8 @@ public:
 	void start() {
 		error_code ec;
 		auto& conf = config_loader::load_config();
-		std::string db_host, db_name, db_user, db_password, cache_user, cache_password;
-		uint16_t db_port{ 3306 };
-		redis::ConnectionOptions options;
-
-		//////////////////////////////////////
-		db_user = "root";
-		db_password = "1234";
-		db_host = "localhost";
-		db_name = "sparrow";
-		/////////////////////////////////////
-
-		options.host = conf["cache_host"].get<std::string>();
-		if (conf.contains("cache_port"))
-			options.port = conf["cache_port"].get<int>();
-		if (conf.contains("cache_user"))
-			options.user = conf["cache_user"].get<std::string>();
-		if (conf.contains("cache_password"))
-			options.password = conf["cache_password"].get<std::string>();
-
-		if (conf.contains("db_user"))
-			db_user = conf["db_user"].get<std::string>();
-		if (conf.contains("db_port"))
-			db_port = conf["db_port"].get<uint16_t>();
-		if (conf.contains("db_name"))
-			db_name = conf["db_name"].get<std::string>();
-
-
+		auto [db_host, db_name, db_user, db_password, cache_user, cache_password, cert_path, key_path, dh_path, db_port, options] = connect_config_init();
+		
 		bool connect_cache = cache_.init(options);
 
 		bool connect_storage = storage_.init(
@@ -83,9 +75,9 @@ public:
 		leo::load_server_certificate(
 			ctx_,
 			ec,
-			conf["cert_path"].get<std::string>(),
-			conf["private_key_path"].get<std::string>(),
-			conf["dh_path"].get<std::string>()
+			cert_path,
+			key_path,
+			dh_path
 		);
 
 		derived().start_impl();
@@ -97,7 +89,10 @@ public:
 	cache_service& cache() { return cache_; }
 	cancellation_signals& signals() { return signals_; }
 
+	void set_uri(std::string uri) { uri_ = uri; }
+	const std::string& uri() const { return uri_; }
 };
+
 }
 
 #endif // !SPARROW_SERVER_HPP

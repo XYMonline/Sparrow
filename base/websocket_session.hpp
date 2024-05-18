@@ -6,7 +6,7 @@
 #include "beast.hpp"
 #include "logger.hpp"
 
-//#include "../tools/tool_func.hpp"
+#include "../tools/tool_func.hpp"
 #include "../tools/cancellation_signals.hpp"
 
 #include <print>
@@ -22,7 +22,7 @@ protected:
 	websocket_stream ws_;
 	expr::concurrent_channel<void(boost::system::error_code, std::string)> read_channel_;
 	expr::concurrent_channel<void(boost::system::error_code, std::string)> write_channel_;
-	expr::channel<void()> write_lock_;
+	expr::concurrent_channel<void()> write_lock_; // fix, it will be used in writer and handle_messages
 
 	std::string uuid_;
 
@@ -32,15 +32,14 @@ public:
 		, read_channel_{ ws_.get_executor(), 4096 } // a big buffer
 		, write_channel_{ ws_.get_executor(), 4096 }
 		, write_lock_{ ws_.get_executor(), 1 }  // 1 for single writer
-		, uuid_{ "1" } 
+		, uuid_{ uuid_gen()}
 	{
 		ws_.set_option(
 			websocket::stream_base::timeout::suggested(
 				beast::role_type::server));
 
 		ws_.set_option(websocket::stream_base::decorator(
-			[this](websocket::response_type& res)
-			{
+			[this](websocket::response_type& res) {
 				res.set(http::field::server, // 子类重新设置服务器名称
 				derived().server_name());
 			}));

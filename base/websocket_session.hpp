@@ -64,6 +64,14 @@ public:
 		read_channel_.cancel();
 		write_channel_.cancel();
 		write_lock_.cancel();
+
+		// save channel data
+
+		// complete and close channel
+		read_channel_.close();
+		write_channel_.close();
+		write_lock_.close();
+
 		std::println("shutdown and close socket");
 	}
 

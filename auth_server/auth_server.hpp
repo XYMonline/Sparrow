@@ -7,7 +7,7 @@
 namespace leo {
 namespace auth {
 ;
-class auth_session;
+class client_session;
 class auth_server
 	: public server<auth_server>
 	, public std::enable_shared_from_this<auth_server> 

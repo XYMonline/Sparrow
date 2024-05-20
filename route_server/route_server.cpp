@@ -3,7 +3,7 @@
 #include "auth_session.hpp"
 #include "route_session.hpp"
 #include "business_session.hpp"
-#include "controler_session.hpp"
+#include "controller_session.hpp"
 
 namespace leo {
 namespace route {
@@ -18,7 +18,7 @@ void route_server::start_impl() {
 	listener->run<route_server, auth_session>(*this, "route_login_port_range");
 	listener->run<route_server, route_session>(*this, "route_route_port_range");
 	listener->run<route_server, business_session>(*this, "route_business_port_range");
-	listener->run<route_server, controler_session>(*this, "route_controler_port_range");
+	listener->run<route_server, controller_session>(*this, "route_controller_port_range");
 }
 
 void route_server::stop_impl() {

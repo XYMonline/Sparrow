@@ -1,6 +1,7 @@
 #include "client_session.hpp"
-
 #include "business_server.hpp"
+
+#include "../tools/proto/client_message.pb.h"
 
 namespace leo {
 namespace business {

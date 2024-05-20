@@ -1,6 +1,8 @@
 #include "route_session.hpp"
 #include "business_server.hpp"
 
+#include "../tools/proto/server_message.pb.h"
+
 namespace leo {
 namespace business {
 ;

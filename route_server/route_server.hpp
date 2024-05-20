@@ -10,7 +10,7 @@ namespace route {
 class auth_session;
 class route_session;
 class business_session;
-class controler_session;
+class controller_session;
 
 class route_server
 	: public server<route_server>

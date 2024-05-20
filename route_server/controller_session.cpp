@@ -1,6 +1,8 @@
 #include "controller_session.hpp"
 #include "route_server.hpp"
 
+#include "../tools/proto/controller_message.pb.h"
+
 namespace leo {
 namespace route {
 ;

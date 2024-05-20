@@ -16,6 +16,8 @@ enum server_category {
 message srever_info {
 	server_category category = 1;
 	string uri = 2;
+	int32 load = 3;
+	string master_uri = 4; // business_server 的 master_uri 为 route_server 的 uri
 }
 
 message route_controller {

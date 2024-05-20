@@ -2,6 +2,13 @@
 
 namespace leo {
 ;
+void listener::fail(boost::system::error_code ec, char const* what) {
+	if (ec == net::error::operation_aborted) {
+		return;
+	}
+	std::println("{}: {} code: {}", what, ec.message(), ec.value());
+}
+
 bool listener::acceptor_init(std::string_view port_range_key) {
 	auto conf{ config_loader::load_config() };
 	auto host{ conf["host"].get<std::string>() };

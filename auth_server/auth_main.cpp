@@ -7,10 +7,10 @@
 
 int main(int argc, char* argv[]) {
     net::io_context ioc;
-    leo::auth::auth_server auth_server{ ioc };
-    auth_server.start();
+    leo::auth::auth_server server{ ioc };
+    server.start();
 
-    auto& cancellation = auth_server.signals();
+    auto& cancellation = server.signals();
     net::signal_set signals(ioc, SIGINT, SIGTERM);
     signals.async_wait(
         [&](beast::error_code const&, int sig) {
@@ -41,5 +41,5 @@ int main(int argc, char* argv[]) {
     }
 
     // after all threads are joined, store the cache
-    auth_server.store();
+    server.store();
 }

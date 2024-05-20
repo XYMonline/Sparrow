@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.20)
 
-# Èç¹ûÖ§³Ö£¬ÇëÎª MSVC ±àÒëÆ÷ÆôÓÃÈÈÖØÔØ¡£
+# å¦‚æœæ”¯æŒï¼Œè¯·ä¸º MSVC ç¼–è¯‘å™¨å¯ç”¨çƒ­é‡è½½ã€‚
 if (POLICY CMP0141)
   cmake_policy(SET CMP0141 NEW)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
@@ -13,7 +13,13 @@ aux_source_directory (../tools/proto PROTO_SRC)
 aux_source_directory (../tools TOOL_SRC)
 aux_source_directory (../tools/service SERVICE_SRC)
 
-add_executable (${PROJECT_NAME} "route_main.cpp" ${BASE_SRC} ${PROTO_SRC}  ${TOOL_SRC} ${SERVICE_SRC})
+set (SOURCE_FILES
+    "../tools/cancellation_signals.cpp"
+    "../base/listener.cpp"
+    "../base/server.cpp"
+)
+
+add_executable (${PROJECT_NAME} "route_main.cpp" ${SOURCE_FILES} ${BASE_SRC} ${PROTO_SRC}  ${TOOL_SRC} ${SERVICE_SRC} "route_session.cpp" "auth_session.cpp" "business_session.cpp" "route_server.cpp" "controler_session.cpp")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

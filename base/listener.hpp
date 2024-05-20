@@ -31,12 +31,7 @@ class listener
 	ssl::context& ctx_;
 	std::unique_ptr<tcp::acceptor> acceptor_;
 
-	void fail(boost::system::error_code ec, char const* what) {
-		if (ec == net::error::operation_aborted) {
-			return;
-		}
-		std::println("{}: {} code: {}", what, ec.message(), ec.value());
-	}
+	void fail(boost::system::error_code ec, char const* what);
 
 public:
 	listener(

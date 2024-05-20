@@ -1,25 +1,25 @@
 #pragma once
-#ifndef SPARROW_AUTH_ROUTE_SESSION_HPP
-#define SPARROW_AUTH_ROUTE_SESSION_HPP
+#ifndef SPARROW_BUSINESS_SESSION_HPP
+#define SPARROW_BUSINESS_SESSION_HPP
 
 #include "../base/websocket_session.hpp"
 
 namespace leo {
-namespace auth {
+namespace business {
 ;
-class auth_server;
-/*
- * communicate with route server
- *
- */
+class business_server;
+ /*
+  * communicate with route server
+  *
+  */
 class route_session
 	: public websocket_session<route_session>
 	, public std::enable_shared_from_this<route_session>
 {
-	auth_server& server_;
+	business_server& server_;
 
 public:
-	route_session(beast::ssl_stream<beast::tcp_stream> stream, auth_server& server);
+	route_session(beast::ssl_stream<beast::tcp_stream> stream, business_server& server);
 
 	~route_session();
 
@@ -32,4 +32,4 @@ public:
 }
 }
 
-#endif // !SPARROW_AUTH_ROUTE_SESSION_HPP
+#endif // !SPARROW_ROUTE_BUSINESS_SESSION_HPP

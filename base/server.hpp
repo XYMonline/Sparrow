@@ -14,6 +14,7 @@
 
 namespace leo {
 ;
+
 struct connect_config {
 	std::string					db_host;
 	std::string					db_name;
@@ -30,6 +31,12 @@ struct connect_config {
 
 connect_config connect_config_init();
 
+/*
+ * derived class must implement the following functions:
+ * - void start_impl()
+ * - void stop_impl()
+ * - void store_impl()
+ */
 template<typename Derived>
 class server {
 	Derived& derived() {
@@ -48,7 +55,8 @@ public:
 	server(net::io_context& ioc)
 		: ioc_{ ioc }
 		, ctx_{ ssl::context::tlsv12 }
-		, storage_{ ioc, ctx_ } {
+		, storage_{ ioc, ctx_ } 
+	{
 	}
 
 	void start() {

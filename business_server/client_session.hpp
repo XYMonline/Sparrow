@@ -1,18 +1,15 @@
 #pragma once
-#ifndef SPARROW_AUTH_CLIENT_SESSION_HPP
-#define SPARROW_AUTH_CLIENT_SESSION_HPP
+#ifndef SPARROW_BUSINESS_CLIENT_SESSION_HPP
+#define SPARROW_BUSINESS_CLIENT_SESSION_HPP
 
 #include "../base/websocket_session.hpp"
 #include "../tools/cancellation_signals.hpp"
 
 #include <print>
 
-#include <random>
-
 namespace leo {
-namespace auth {
-class auth_server;
-
+namespace business {
+class business_server;
 /*
  * handle messages from client
  */
@@ -20,10 +17,10 @@ class client_session
         : public websocket_session<client_session>
         , public std::enable_shared_from_this<client_session>
 {
-	auth_server& server_;
+	business_server& server_;
 
 public:
-    client_session(beast::ssl_stream<beast::tcp_stream> stream, auth_server& server);
+    client_session(beast::ssl_stream<beast::tcp_stream> stream, business_server& server);
 
     ~client_session();
 

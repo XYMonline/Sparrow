@@ -1,16 +1,14 @@
 #include "route_session.hpp"
-
-#include "auth_server.hpp"
+#include "route_server.hpp"
 
 namespace leo {
-namespace auth {
+namespace route {
 ;
 
-route_session::route_session(beast::ssl_stream<beast::tcp_stream> stream, auth_server& server)
-	: websocket_session{ std::move(stream) }
-	, server_{ server } 
+route_session::route_session(beast::ssl_stream<beast::tcp_stream> stream, route_server& server) 
+	: websocket_session(std::move(stream))
+	, server_(server) 
 {
-
 }
 
 route_session::~route_session() {
@@ -34,10 +32,6 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 			this->fail(ec, "handle_messages");
 		}
 	}
-}
-
-std::string route_session::server_name() {
-	return "auth_server";
 }
 
 cancellation_signals& route_session::signals() {

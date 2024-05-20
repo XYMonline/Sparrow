@@ -1,49 +1,45 @@
-#include "../tools/load_blancer.hpp"
+#include "route_server.hpp"
+#include "../tools/config_loader.hpp"
 
-#include <print>
-#include <thread>
+#include <boost/asio/signal_set.hpp>
 
-struct session {
-	int id_;
-	int load_ = 0;
-	session(int id) : id_(id) {}
-	void do_task() {
-		std::println("session {} do task", id_);
-		++load_;
-	}
-	int load() const { return load_; }
-	void stop() {}
-};
-
-using session_ptr = std::shared_ptr<session>;
+#include <vector>
 
 int main(int argc, char* argv[]) {
-	net::io_context ioc;
-	leo::load_balancer<session, leo::least_connections> lb{ ioc };
-	
-	for (int i = 0; i < 100; ++i) {
-		lb.add_server(std::to_string(i), std::make_shared<session>(i));
-	}
+    net::io_context ioc;
+	leo::route::route_server server{ ioc };
+    server.start();
 
-	auto task = [](session_ptr s) {
-		s->do_task();
-		};
+    auto& cancellation = server.signals();
+    net::signal_set signals(ioc, SIGINT, SIGTERM);
+    signals.async_wait(
+        [&](beast::error_code const&, int sig) {
+            if (sig == SIGINT) {
+                cancellation.emit(net::cancellation_type::all);
+            }
+            else {
+                ioc.stop();
+            }
+        });
 
-	std::vector<std::thread> threads;
-	threads.emplace_back([&lb, task] {
-		for (int i = 0; i < 10000; ++i) {
-			lb.commit(task);
-		}
-		});
-	for (int i = 0; i < 32; ++i) {
-		threads.emplace_back([&ioc] {
-			ioc.run();
-			});
-	}
+    auto work_thread_num = std::max(
+        4u,
+        std::min(
+            std::thread::hardware_concurrency(),
+            leo::config_loader::load_config()["work_thread_num"].get<uint32_t>()
+        )
+    );
 
-	ioc.run();
+    std::vector<std::thread> threads;
+    for (auto i = 1u; i < work_thread_num; ++i) {
+        threads.emplace_back([&ioc] { ioc.run(); });
+    }
+    ioc.run();
 
-	for (auto& t : threads) {
-		t.join();
-	}
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    // after all threads are joined, store the cache
+    server.store();
 }

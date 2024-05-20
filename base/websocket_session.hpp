@@ -13,6 +13,14 @@
 
 namespace leo {
 ;
+
+/*
+ * derived class must implement the following functions:
+ * - net::awaitable<void> handle_messages_impl : fetch message from read_channel_ and process it, then send it to write_channel_
+ * - std::string server_name : return the server name
+ * - cancellation_signals& signals : return the signals from the server
+ *
+ */
 template<typename Derived>
 class websocket_session {
 	Derived& derived() {
@@ -47,6 +55,19 @@ public:
 
 	~websocket_session() {
 		std::println("websocket_session destructed");
+	}
+
+	// pass message to the write queue
+	void deliver(std::string message) {
+		auto self = derived().shared_from_this();
+		net::co_spawn(ws_.get_executor(), [this, self, message = std::move(message)]() mutable {
+			auto ec = co_await write_channel_.async_send({}, message);
+			if (ec) {
+				self->fail(ec, "deliver");
+			}
+			},
+			net::bind_cancellation_slot(derived().signals().slot(), net::detached)
+		);
 	}
 
 	void start() {

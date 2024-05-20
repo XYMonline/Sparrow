@@ -13,10 +13,10 @@ auth_server::auth_server(net::io_context& ioc)
 }
 
 void auth_server::start_impl() {
-	boost::system::error_code ec;
-
 	auto listener = std::make_shared<leo::listener>(ioc_, ctx_);
 	listener->run<auth_server, client_session>(*this, "login_client_port_range");
+
+	// connect to route server
 }
 
 void auth_server::stop_impl() {

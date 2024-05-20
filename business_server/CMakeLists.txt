@@ -12,8 +12,13 @@ aux_source_directory (../base BASE_SRC)
 aux_source_directory (../tools/proto PROTO_SRC)
 aux_source_directory (../tools TOOL_SRC)
 aux_source_directory (../tools/service SERVICE_SRC)
+set (SOURCE_FILES
+    "../tools/cancellation_signals.cpp"
+    "../base/listener.cpp"
+    "../base/server.cpp"
+)
 
-add_executable (${PROJECT_NAME} "business_main.cpp" ${BASE_SRC} ${PROTO_SRC} ${TOOL_SRC} ${SERVICE_SRC})
+add_executable (${PROJECT_NAME} "business_main.cpp" ${SOURCE_FILES} ${BASE_SRC} ${PROTO_SRC} ${TOOL_SRC} ${SERVICE_SRC}  "route_session.cpp" "client_session.cpp" "business_server.cpp")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

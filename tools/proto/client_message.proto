@@ -3,63 +3,46 @@ syntax = "proto3";
 package message_type;
 
 enum category_login_client {
-        REQUEST_LOGIN = 0; // 登录
-        REQUEST_SIGNUP = 1; // 注册
-        REQUEST_FORGET = 2; // 忘记密码
-        REQUEST_SIGN_BACK = 8; // 重新登录
-        RESPONSE_LOGIN_SUCCESS = 3; // 登录成功
-        RESPONSE_LOGIN_FAILED = 4; // 登录失败
-        RESPONSE_SIGNUP_SUCCESS = 5; // 注册成功
-        RESPONSE_SIGNUP_FAILED = 6; // 注册失败
-        RESPONSE_RESET = 7; // 重置密码
+    REQUEST_LOGIN = 0; // 登录
+    REQUEST_SIGNUP = 1; // 注册
+    REQUEST_FORGET = 2; // 忘记密码
+    REQUEST_SIGN_BACK = 8; // 重新登录
+    RESPONSE_LOGIN_SUCCESS = 3; // 登录成功
+    RESPONSE_LOGIN_FAILED = 4; // 登录失败
+    RESPONSE_SIGNUP_SUCCESS = 5; // 注册成功
+    RESPONSE_SIGNUP_FAILED = 6; // 注册失败
+    RESPONSE_RESET = 7; // 重置密码
 }
 
-enum category_session_client {
-        REQUEST_VERIFY = 0; // 验证登录
-        RESPONSE_VERIFY = 1; // 验证成功
-        REQUEST_FETCH_MESSAGE = 3; // 获取消息
-        RESPONSE_FETCH_MESSAGE = 4; // 返回消息
-        REQUEST_SEND_MESSAGE = 5; // 发送消息
-}
-
-enum category_route_penal {
-
-}
-
-enum device_type {
-        PC = 0;
-        MOBILE = 1;
+enum category_business_client {
+    REQUEST_VERIFY = 0; // 验证登录
+    RESPONSE_VERIFY = 1; // 验证成功
+    REQUEST_FETCH_MESSAGE = 2; // 获取消息
+    RESPONSE_FETCH_MESSAGE = 3; // 返回消息
+    REQUEST_SEND_MESSAGE = 4; // 发送消息
 }
 
 message login_client {
-        category_login_client category = 1; // 消息类别
-        string uuid = 2; // 消息唯一标识
-        string token = 3; // 登录验证token
-        string email = 4; // 邮箱
-        string password = 5; // 密码
-        string session_host = 6; // 会话服务器地址
-        int32 session_port = 7; // 会话服务器端口
-        int64 formal_id = 8; // 账户正式id
-        device_type device_type = 9; // 登录设备类型
+    category_login_client category = 1; // 消息类别
+    string uuid = 2; // 消息唯一标识
+    string token = 3; // 登录验证token
+    string email = 4; // 邮箱
+    string password = 5; // 密码
+    string uri = 6; // 业务服务器地址
 }
 
-message session_client {
-        category_session_client category = 1;
-        string verify_token = 3; // 用于登录时验证身份
-        bool verify_result = 2; // 验证结果
-        int64 sender_id = 4;
-        repeated user_message messages = 5;
-        string uuid = 6;
-}
-
-message route_penal {
-
+message business_client {
+    category_business_client category = 1;
+    string verify_token = 3; // 用于登录时验证身份
+    bool verify_result = 2; // 验证结果
+    string sender_id = 4;
+    repeated user_message messages = 5;
+    string uuid = 6;
 }
 
 message user_message {
-        string uuid = 1;
-        string text_content = 2;
-        int64 receiver_id = 3;
-        int64 sender_id = 5;
-        int64 timestamp = 4;
+    string uuid = 1;
+    string text_content = 2;
+    string sender_id = 3;
+    int64 timestamp = 4;
 }

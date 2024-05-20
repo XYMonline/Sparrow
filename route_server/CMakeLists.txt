@@ -19,7 +19,7 @@ set (SOURCE_FILES
     "../base/server.cpp"
 )
 
-add_executable (${PROJECT_NAME} "route_main.cpp" ${SOURCE_FILES} ${BASE_SRC} ${PROTO_SRC}  ${TOOL_SRC} ${SERVICE_SRC} "route_session.cpp" "auth_session.cpp" "business_session.cpp" "route_server.cpp" "controler_session.cpp")
+add_executable (${PROJECT_NAME} "route_main.cpp" ${SOURCE_FILES} ${BASE_SRC} ${PROTO_SRC}  ${TOOL_SRC} ${SERVICE_SRC} "route_session.cpp" "auth_session.cpp" "business_session.cpp" "route_server.cpp" "controller_session.cpp")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

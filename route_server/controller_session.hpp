@@ -12,18 +12,18 @@ class route_server;
  * communicate with controler
  *
  */
-class controler_session
-	: public websocket_session<controler_session>
-	, public std::enable_shared_from_this<controler_session>
+class controller_session
+	: public websocket_session<controller_session>
+	, public std::enable_shared_from_this<controller_session>
 {
 	route_server& server_;
 
 public:
-	controler_session(beast::ssl_stream<beast::tcp_stream> stream, route_server& server);
+	controller_session(beast::ssl_stream<beast::tcp_stream> stream, route_server& server);
 
-	~controler_session();
+	~controller_session();
 
-	net::awaitable<void> handle_messages_impl(std::shared_ptr<controler_session> self);
+	net::awaitable<void> handle_messages_impl(std::shared_ptr<controller_session> self);
 
 	static std::string server_name() {
 		return "route_server";

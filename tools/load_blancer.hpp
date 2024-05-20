@@ -16,6 +16,11 @@ namespace net = boost::asio;
 
 namespace leo {
 ;
+/*
+ * Session must have members:
+ * - int load() -> return a comparable value of the load of the session
+ * - void stop() -> stop the session
+ */
 template <typename Session>
 struct algorithm_interface {
 	using session_ptr = std::shared_ptr<Session>;

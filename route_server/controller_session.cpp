@@ -1,19 +1,19 @@
-#include "controler_session.hpp"
+#include "controller_session.hpp"
 #include "route_server.hpp"
 
 namespace leo {
 namespace route {
 ;
-controler_session::controler_session(beast::ssl_stream<beast::tcp_stream> stream, route_server& server)
+controller_session::controller_session(beast::ssl_stream<beast::tcp_stream> stream, route_server& server)
 	: websocket_session(std::move(stream))
 	, server_(server) 
 {
 }
 
-controler_session::~controler_session() {
+controller_session::~controller_session() {
 }
 
-net::awaitable<void> controler_session::handle_messages_impl(std::shared_ptr<controler_session> self) {
+net::awaitable<void> controller_session::handle_messages_impl(std::shared_ptr<controller_session> self) {
 	boost::system::error_code ec;
 	auto token = net::redirect_error(net::deferred, ec);
 	std::string message;
@@ -33,7 +33,7 @@ net::awaitable<void> controler_session::handle_messages_impl(std::shared_ptr<con
 	}
 }
 
-cancellation_signals& controler_session::signals() {
+cancellation_signals& controller_session::signals() {
 	return server_.signals();
 }
 

@@ -21,12 +21,14 @@ class controller_session
 public:
 	controller_session(beast::ssl_stream<beast::tcp_stream> stream, route_server& server);
 
-	~controller_session();
+	~controller_session() = default;
+
+	void start_impl();
 
 	net::awaitable<void> handle_messages_impl(std::shared_ptr<controller_session> self);
 
 	static std::string server_name() {
-		return "route_server";
+		return "route_server controller_session";
 	}
 
 	cancellation_signals& signals();

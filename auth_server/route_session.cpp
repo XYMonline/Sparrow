@@ -11,10 +11,15 @@ route_session::route_session(beast::ssl_stream<beast::tcp_stream> stream, auth_s
 	: websocket_session{ std::move(stream) }
 	, server_{ server } 
 {
-
+	set_role(ssl::stream_base::client);
 }
 
-route_session::~route_session() {
+void route_session::start_impl() {
+	server_.temp_add(shared_from_this());
+	message_type::route_auth msg;
+	msg.set_uri(server_.uri());
+	msg.set_category(message_type::SERVER_INFO);
+	deliver(msg.SerializeAsString());
 }
 
 net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_session> self) {
@@ -25,10 +30,6 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);
 		if (!ec) {
-			co_await write_channel_.async_send({}, message, token);
-			if (ec) {
-				this->fail(ec, "handle_messages");
-			}
 			// handle message
 		}
 		else {
@@ -38,7 +39,7 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 }
 
 std::string route_session::server_name() {
-	return "auth_server";
+	return "auth_server route_session";
 }
 
 cancellation_signals& route_session::signals() {

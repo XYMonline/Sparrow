@@ -33,12 +33,14 @@ inline void load_server_certificate(ssl::context& ctx, boost::system::error_code
 		| boost::asio::ssl::context::single_dh_use);
 
 
-	ctx.set_verify_mode(ssl::verify_peer);
-	//ctx.set_verify_mode(ssl::verify_none);
+	ctx.set_verify_mode(ssl::verify_peer); // production
+	//ctx.set_verify_mode(ssl::verify_none); // test
+	//ctx.set_default_verify_paths();
 
 	std::string cert = read_file(cert_path);
 	ctx.use_certificate_chain(
 		boost::asio::buffer(cert.data(), cert.size()));
+	ctx.load_verify_file(cert_path);
 
 	std::string key = read_file(key_path);
 	ctx.use_private_key(

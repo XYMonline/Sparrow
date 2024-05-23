@@ -12,22 +12,25 @@ business_session::business_session(beast::ssl_stream<beast::tcp_stream> stream, 
 {
 }
 
-business_session::~business_session() {
+void business_session::start_impl() {
+	server_.temp_add(shared_from_this());
 }
 
 net::awaitable<void> business_session::handle_messages_impl(std::shared_ptr<business_session> self) {
 	boost::system::error_code ec;
 	auto token = net::redirect_error(net::deferred, ec);
 	std::string message;
+	message_type::route_business msg;
 
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);
 		if (!ec) {
-			co_await write_channel_.async_send({}, message, token);
-			if (ec) {
-				this->fail(ec, "handle_messages");
-			}
 			// handle message
+			switch (msg.ParseFromString(message)) {
+			case message_type::SERVER_INFO:
+				server_.temp_add(shared_from_this());
+				break;
+			}
 		}
 		else {
 			this->fail(ec, "handle_messages");

@@ -59,30 +59,30 @@ template<> ::message_type::srever_info* Arena::CreateMaybeMessage<::message_type
 PROTOBUF_NAMESPACE_CLOSE
 namespace message_type {
 
-enum message_category : int {
+enum route_controller_category : int {
   SERVER_LIST = 0,
   FORCE_OFFLINE = 1,
-  message_category_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
-  message_category_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+  route_controller_category_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  route_controller_category_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
-bool message_category_IsValid(int value);
-constexpr message_category message_category_MIN = SERVER_LIST;
-constexpr message_category message_category_MAX = FORCE_OFFLINE;
-constexpr int message_category_ARRAYSIZE = message_category_MAX + 1;
+bool route_controller_category_IsValid(int value);
+constexpr route_controller_category route_controller_category_MIN = SERVER_LIST;
+constexpr route_controller_category route_controller_category_MAX = FORCE_OFFLINE;
+constexpr int route_controller_category_ARRAYSIZE = route_controller_category_MAX + 1;
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* message_category_descriptor();
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* route_controller_category_descriptor();
 template<typename T>
-inline const std::string& message_category_Name(T enum_t_value) {
-  static_assert(::std::is_same<T, message_category>::value ||
+inline const std::string& route_controller_category_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, route_controller_category>::value ||
     ::std::is_integral<T>::value,
-    "Incorrect type passed to function message_category_Name.");
+    "Incorrect type passed to function route_controller_category_Name.");
   return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
-    message_category_descriptor(), enum_t_value);
+    route_controller_category_descriptor(), enum_t_value);
 }
-inline bool message_category_Parse(
-    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, message_category* value) {
-  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<message_category>(
-    message_category_descriptor(), name, value);
+inline bool route_controller_category_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, route_controller_category* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<route_controller_category>(
+    route_controller_category_descriptor(), name, value);
 }
 enum server_category : int {
   AUTH = 0,
@@ -445,13 +445,13 @@ class route_controller final :
   const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::message_type::srever_info >&
       server_list() const;
 
-  // .message_type.message_category category = 1;
+  // .message_type.route_controller_category category = 1;
   void clear_category();
-  ::message_type::message_category category() const;
-  void set_category(::message_type::message_category value);
+  ::message_type::route_controller_category category() const;
+  void set_category(::message_type::route_controller_category value);
   private:
-  ::message_type::message_category _internal_category() const;
-  void _internal_set_category(::message_type::message_category value);
+  ::message_type::route_controller_category _internal_category() const;
+  void _internal_set_category(::message_type::route_controller_category value);
   public:
 
   // @@protoc_insertion_point(class_scope:message_type.route_controller)
@@ -624,22 +624,22 @@ inline void srever_info::set_allocated_master_uri(std::string* master_uri) {
 
 // route_controller
 
-// .message_type.message_category category = 1;
+// .message_type.route_controller_category category = 1;
 inline void route_controller::clear_category() {
   _impl_.category_ = 0;
 }
-inline ::message_type::message_category route_controller::_internal_category() const {
-  return static_cast< ::message_type::message_category >(_impl_.category_);
+inline ::message_type::route_controller_category route_controller::_internal_category() const {
+  return static_cast< ::message_type::route_controller_category >(_impl_.category_);
 }
-inline ::message_type::message_category route_controller::category() const {
+inline ::message_type::route_controller_category route_controller::category() const {
   // @@protoc_insertion_point(field_get:message_type.route_controller.category)
   return _internal_category();
 }
-inline void route_controller::_internal_set_category(::message_type::message_category value) {
+inline void route_controller::_internal_set_category(::message_type::route_controller_category value) {
   
   _impl_.category_ = value;
 }
-inline void route_controller::set_category(::message_type::message_category value) {
+inline void route_controller::set_category(::message_type::route_controller_category value) {
   _internal_set_category(value);
   // @@protoc_insertion_point(field_set:message_type.route_controller.category)
 }
@@ -696,10 +696,10 @@ route_controller::server_list() const {
 
 PROTOBUF_NAMESPACE_OPEN
 
-template <> struct is_proto_enum< ::message_type::message_category> : ::std::true_type {};
+template <> struct is_proto_enum< ::message_type::route_controller_category> : ::std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::message_type::message_category>() {
-  return ::message_type::message_category_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::message_type::route_controller_category>() {
+  return ::message_type::route_controller_category_descriptor();
 }
 template <> struct is_proto_enum< ::message_type::server_category> : ::std::true_type {};
 template <>

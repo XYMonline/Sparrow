@@ -5,7 +5,15 @@
 
 #include <vector>
 
+#ifdef _WIN32 
+#include <windows.h>
+#endif
+
 int main(int argc, char* argv[]) {
+#ifdef _WIN32 
+    SetConsoleOutputCP(65001);
+#endif
+
     net::io_context ioc;
 	leo::route::route_server server{ ioc };
     server.start();
@@ -34,6 +42,7 @@ int main(int argc, char* argv[]) {
     for (auto i = 1u; i < work_thread_num; ++i) {
         threads.emplace_back([&ioc] { ioc.run(); });
     }
+    
     ioc.run();
 
     for (auto& t : threads) {
@@ -42,4 +51,5 @@ int main(int argc, char* argv[]) {
 
     // after all threads are joined, store the cache
     server.store();
+    server.stop();
 }

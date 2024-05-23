@@ -25,7 +25,7 @@ class client_session
 public:
     client_session(beast::ssl_stream<beast::tcp_stream> stream, auth_server& server);
 
-    ~client_session();
+	void start_impl();
 
     net::awaitable<void> handle_messages_impl(std::shared_ptr<client_session> self);
 

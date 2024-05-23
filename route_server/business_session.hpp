@@ -21,12 +21,14 @@ class business_session
 public:
 	business_session(beast::ssl_stream<beast::tcp_stream> stream, route_server& server);
 
-	~business_session();
+	~business_session() = default;
+
+	void start_impl();
 
 	net::awaitable<void> handle_messages_impl(std::shared_ptr<business_session> self);
 
 	static std::string server_name() {
-		return "route_server";
+		return "route_server business_session";
 	}
 
 	cancellation_signals& signals();

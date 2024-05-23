@@ -12,7 +12,8 @@ controller_session::controller_session(beast::ssl_stream<beast::tcp_stream> stre
 {
 }
 
-controller_session::~controller_session() {
+void controller_session::start_impl() {
+	server_.temp_add(shared_from_this());
 }
 
 net::awaitable<void> controller_session::handle_messages_impl(std::shared_ptr<controller_session> self) {
@@ -23,10 +24,6 @@ net::awaitable<void> controller_session::handle_messages_impl(std::shared_ptr<co
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);
 		if (!ec) {
-			co_await write_channel_.async_send({}, message, token);
-			if (ec) {
-				this->fail(ec, "handle_messages");
-			}
 			// handle message
 		}
 		else {

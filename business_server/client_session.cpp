@@ -14,10 +14,6 @@ client_session::client_session(beast::ssl_stream<beast::tcp_stream> stream, busi
 
 }
 
-client_session::~client_session() {
-	std::println("session destructed");
-}
-
 net::awaitable<void> client_session::handle_messages_impl(std::shared_ptr<client_session> self) {
 	boost::system::error_code ec;
 	auto token = net::redirect_error(net::deferred, ec);
@@ -26,10 +22,7 @@ net::awaitable<void> client_session::handle_messages_impl(std::shared_ptr<client
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);
 		if (!ec) {
-			co_await write_channel_.async_send({}, message, token);
-			if (ec) {
-				this->fail(ec, "handle_messages");
-			}
+			//handle message
 		}
 		else {
 			this->fail(ec, "handle_messages");

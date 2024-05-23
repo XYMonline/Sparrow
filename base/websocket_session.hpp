@@ -19,7 +19,7 @@ namespace leo {
  * - net::awaitable<void> handle_messages_impl : fetch message from read_channel_ and process it, then send it to write_channel_
  * - std::string server_name : return the server name
  * - cancellation_signals& signals : return the signals from the server
- *
+ * - void start_impl : start the session
  */
 template<typename Derived>
 class websocket_session {
@@ -33,6 +33,9 @@ protected:
 	expr::concurrent_channel<void()> write_lock_; // fix, it will be used in writer and handle_messages
 
 	std::string uuid_;
+	std::string uri_;
+
+	ssl::stream_base::handshake_type role_{ ssl::stream_base::server };
 
 public:
 	websocket_session(beast::ssl_stream<beast::tcp_stream>&& stream)
@@ -54,19 +57,28 @@ public:
 	}
 
 	~websocket_session() {
-		std::println("websocket_session destructed");
+		std::println("destroy websocket_session");
+	}
+
+	std::string uuid() const {
+		return uuid_;
+	}
+
+	void set_uri(const std::string& uri) {
+		uri_ = uri;
 	}
 
 	// pass message to the write queue
-	void deliver(std::string message) {
+	void deliver(const std::string& message) {
 		auto self = derived().shared_from_this();
-		net::co_spawn(ws_.get_executor(), [this, self, message = std::move(message)]() mutable {
-			auto ec = co_await write_channel_.async_send({}, message);
+		net::co_spawn(ws_.get_executor(), [this, self, message]() -> net::awaitable<void> {
+			boost::system::error_code ec;
+			co_await write_channel_.async_send({}, message, net::redirect_error(net::use_awaitable, ec));
 			if (ec) {
 				self->fail(ec, "deliver");
 			}
 			},
-			net::bind_cancellation_slot(derived().signals().slot(), net::detached)
+			net::detached
 		);
 	}
 
@@ -75,7 +87,7 @@ public:
 		net::co_spawn(ws_.get_executor(), [self]() mutable {
 			return self->handshake(self);
 			},
-			net::bind_cancellation_slot(derived().signals().slot(), net::detached)
+			net::detached
 		);
 	}
 
@@ -108,36 +120,55 @@ protected:
 		std::println("{}: {} code: {} {}", what, ec.message(), ec.value(), who);
 	}
 
+	void set_role(ssl::stream_base::handshake_type role) {
+		role_ = role;
+	}
+
 private:
 	net::awaitable<void> handshake(auto self) {
 		boost::system::error_code ec;
 		auto token = net::redirect_error(net::use_awaitable, ec);
-		co_await ws_.next_layer().async_handshake(ssl::stream_base::server, token);
+
+		// Perform the SSL handshake
+		co_await ws_.next_layer().async_handshake(role_, token);
 		if (ec) {
-			this->fail(ec, "handshake_accept");
+			this->fail(ec, "handshake");
 			co_return;
 		}
-		co_await ws_.async_accept(token);
-		if (!ec) {
-			net::co_spawn(
-				ws_.get_executor(),
-				this->reader(self),
-				net::bind_cancellation_slot(derived().signals().slot(), net::detached)
-			);
-			net::co_spawn(
-				ws_.get_executor(),
-				this->writer(self),
-				net::bind_cancellation_slot(derived().signals().slot(), net::detached)
-			);
-			net::co_spawn(
-				ws_.get_executor(),
-				this->handle_messages(self),
-				net::bind_cancellation_slot(derived().signals().slot(), net::detached)
-			);
+
+		// derived class is server or client
+		if (role_ == ssl::stream_base::server) {
+			co_await ws_.async_accept(token);
+			if (ec) {
+				this->fail(ec, "handshake_accept");
+				co_return;
+			}
 		}
 		else {
-			this->fail(ec, "handshake");
+			co_await ws_.async_handshake(uri_, "/", token);
+			if (ec) {
+				this->fail(ec, "handshake_connect");
+				co_return;
+			}
 		}
+		
+		net::co_spawn(
+			ws_.get_executor(),
+			this->reader(self),
+			net::bind_cancellation_slot(derived().signals().slot(), net::detached)
+		);
+		net::co_spawn(
+			ws_.get_executor(),
+			this->writer(self),
+			net::bind_cancellation_slot(derived().signals().slot(), net::detached)
+		);
+		net::co_spawn(
+			ws_.get_executor(),
+			this->handle_messages(self),
+			net::bind_cancellation_slot(derived().signals().slot(), net::detached)
+		);
+
+		derived().start_impl();
 	}
 
 	net::awaitable<void> reader(auto self) {
@@ -177,6 +208,7 @@ private:
 				co_await ws_.async_write(net::buffer(message), token);
 				if (ec) this->fail(ec, "ws write", __func__);
 
+				message.clear();
 				write_lock_.try_receive([](auto...) {});
 			}
 			else {

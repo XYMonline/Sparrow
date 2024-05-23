@@ -36,6 +36,10 @@ connect_config connect_config_init();
  * - void start_impl()
  * - void stop_impl()
  * - void store_impl()
+ * - void temp_add_impl(SessionPtr ptr)
+ * - void perm_add_impl(std::string key, SessionPtr ptr)
+ * - void temp_remove_impl(std::string key)
+ * - void perm_remove_impl(std::string key)
  */
 template<typename Derived>
 class server {
@@ -50,6 +54,11 @@ protected:
 	storage_service storage_;
 	cancellation_signals signals_;
 	std::string uri_;
+
+	constexpr static const char* table_route_list{ "route_list" };
+	constexpr static const char* table_auth_list{ "auth_list" };
+	constexpr static const char* table_business_list{ "business_list" };
+	constexpr static const char* table_controller_list{ "controller_list" };
 
 public:
 	server(net::io_context& ioc)
@@ -90,7 +99,10 @@ public:
 
 		derived().start_impl();
 	}
-	void stop() { derived().stop_impl(); }
+	void stop() { 
+		derived().stop_impl(); 
+	}
+
 	void store() { derived().store_impl(); }
 
 	storage_service& storage() { return storage_; }
@@ -99,6 +111,12 @@ public:
 
 	void set_uri(std::string uri) { uri_ = uri; }
 	const std::string& uri() const { return uri_; }
+
+	// add and remove session form temp and permanent container
+	template<typename SessionPtr> void temp_add(SessionPtr ptr) { derived().temp_add_impl(std::move(ptr)); }
+	template<typename SessionPtr> void perm_add(std::string key, SessionPtr ptr) { derived().perm_add_impl(std::move(key), std::move(ptr)); }
+	template<typename SessionPtr> void temp_remove(std::string key) { derived().temp_remove_impl<SessionPtr>(std::move(key)); }
+	template<typename SessionPtr> void perm_remove(std::string key) { derived().perm_remove_impl<SessionPtr>(std::move(key)); }
 };
 
 }

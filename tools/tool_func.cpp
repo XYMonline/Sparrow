@@ -2,6 +2,7 @@
 
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <openssl/evp.h>
 
 #include <chrono>
 
@@ -41,6 +42,34 @@ std::string format_timestamp(int64_t timestamp) {
 	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &timeInfo);
 
 	return buffer;
+}
+
+std::tuple<std::string, std::string> uri2host_port(const std::string& uri) {
+	auto pos = uri.rfind(':');
+	if (pos != std::string::npos) {
+		return std::make_tuple(uri.substr(0, pos), uri.substr(pos + 1));
+	}
+	return std::tuple<std::string, std::string>();
+}
+
+std::string calculateSHA512(const std::string& data) {
+	const EVP_MD* md = EVP_sha512();
+	unsigned char hash[EVP_MAX_MD_SIZE];
+	unsigned int hashLen;
+	char outputBuffer[EVP_MAX_MD_SIZE * 2 + 1];
+
+	EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
+	EVP_DigestInit_ex(mdctx, md, NULL);
+	EVP_DigestUpdate(mdctx, data.c_str(), data.size());
+	EVP_DigestFinal_ex(mdctx, hash, &hashLen);
+	EVP_MD_CTX_free(mdctx);
+
+	for (unsigned int i = 0; i < hashLen; ++i) {
+		std::snprintf(outputBuffer + (i * 2), sizeof(outputBuffer) - (i * 2), "%02x", hash[i]);
+	}
+	outputBuffer[hashLen * 2] = 0;
+
+	return std::string(outputBuffer);
 }
 
 }

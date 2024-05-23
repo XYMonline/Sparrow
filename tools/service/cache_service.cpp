@@ -17,13 +17,13 @@ bool cache_service::init(redis::ConnectionOptions& options) {
 	return true;
 }
 
-bool cache_service::signup_service(const std::string& table_name, const std::string& host_port) {
-	return redis_->sadd(table_name.data(), host_port);
+bool cache_service::signup_service(const std::string& table_name, const std::string & uri) {
+	return redis_->sadd(table_name.data(), uri);
 }
 
-bool cache_service::remove_service(const std::string& table_name, const std::string& host_port) {
+bool cache_service::remove_service(const std::string& table_name, const std::string & uri) {
 	std::lock_guard lock(mtx_);
-	auto replies = pipe_->del(host_port).srem(table_name, host_port).exec();
+	auto replies = pipe_->del(uri).srem(table_name, uri).exec();
 	return replies.get<bool>(0) && replies.get<bool>(1);
 }
 

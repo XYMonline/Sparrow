@@ -23,8 +23,8 @@ public:
 
 	bool init(redis::ConnectionOptions& options);
 
-	bool signup_service(const std::string& table_name, const std::string& host_port);
-	bool remove_service(const std::string& table_name, const std::string& host_port);
+	bool signup_service(const std::string& table_name, const std::string & uri);
+	bool remove_service(const std::string& table_name, const std::string & uri);
 	bool check_service(const std::string& key); // key -> host:port
 	bool keep_alive(const std::string& key, int64_t timeout);
 	bool add_key_value(const std::string& key, const std::string& value, int timeout);

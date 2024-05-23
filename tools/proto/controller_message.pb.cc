@@ -90,17 +90,18 @@ const char descriptor_table_protodef_controller_5fmessage_2eproto[] PROTOBUF_SEC
   "\n\030controller_message.proto\022\014message_type"
   "\"m\n\013srever_info\022/\n\010category\030\001 \001(\0162\035.mess"
   "age_type.server_category\022\013\n\003uri\030\002 \001(\t\022\014\n"
-  "\004load\030\003 \001(\005\022\022\n\nmaster_uri\030\004 \001(\t\"t\n\020route"
-  "_controller\0220\n\010category\030\001 \001(\0162\036.message_"
-  "type.message_category\022.\n\013server_list\030\002 \003"
-  "(\0132\031.message_type.srever_info*6\n\020message"
-  "_category\022\017\n\013SERVER_LIST\020\000\022\021\n\rFORCE_OFFL"
-  "INE\020\001*4\n\017server_category\022\010\n\004AUTH\020\000\022\t\n\005RO"
-  "UTE\020\001\022\014\n\010BUSINESS\020\002b\006proto3"
+  "\004load\030\003 \001(\005\022\022\n\nmaster_uri\030\004 \001(\t\"}\n\020route"
+  "_controller\0229\n\010category\030\001 \001(\0162\'.message_"
+  "type.route_controller_category\022.\n\013server"
+  "_list\030\002 \003(\0132\031.message_type.srever_info*\?"
+  "\n\031route_controller_category\022\017\n\013SERVER_LI"
+  "ST\020\000\022\021\n\rFORCE_OFFLINE\020\001*4\n\017server_catego"
+  "ry\022\010\n\004AUTH\020\000\022\t\n\005ROUTE\020\001\022\014\n\010BUSINESS\020\002b\006p"
+  "roto3"
   ;
 static ::_pbi::once_flag descriptor_table_controller_5fmessage_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_controller_5fmessage_2eproto = {
-    false, false, 387, descriptor_table_protodef_controller_5fmessage_2eproto,
+    false, false, 405, descriptor_table_protodef_controller_5fmessage_2eproto,
     "controller_message.proto",
     &descriptor_table_controller_5fmessage_2eproto_once, nullptr, 0, 2,
     schemas, file_default_instances, TableStruct_controller_5fmessage_2eproto::offsets,
@@ -114,11 +115,11 @@ PROTOBUF_ATTRIBUTE_WEAK const ::_pbi::DescriptorTable* descriptor_table_controll
 // Force running AddDescriptors() at dynamic initialization time.
 PROTOBUF_ATTRIBUTE_INIT_PRIORITY2 static ::_pbi::AddDescriptorsRunner dynamic_init_dummy_controller_5fmessage_2eproto(&descriptor_table_controller_5fmessage_2eproto);
 namespace message_type {
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* message_category_descriptor() {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* route_controller_category_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_controller_5fmessage_2eproto);
   return file_level_enum_descriptors_controller_5fmessage_2eproto[0];
 }
-bool message_category_IsValid(int value) {
+bool route_controller_category_IsValid(int value) {
   switch (value) {
     case 0:
     case 1:
@@ -531,12 +532,12 @@ const char* route_controller::_InternalParse(const char* ptr, ::_pbi::ParseConte
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // .message_type.message_category category = 1;
+      // .message_type.route_controller_category category = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
           uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
-          _internal_set_category(static_cast<::message_type::message_category>(val));
+          _internal_set_category(static_cast<::message_type::route_controller_category>(val));
         } else
           goto handle_unusual;
         continue;
@@ -582,7 +583,7 @@ uint8_t* route_controller::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .message_type.message_category category = 1;
+  // .message_type.route_controller_category category = 1;
   if (this->_internal_category() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteEnumToArray(
@@ -620,7 +621,7 @@ size_t route_controller::ByteSizeLong() const {
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
   }
 
-  // .message_type.message_category category = 1;
+  // .message_type.route_controller_category category = 1;
   if (this->_internal_category() != 0) {
     total_size += 1 +
       ::_pbi::WireFormatLite::EnumSize(this->_internal_category());

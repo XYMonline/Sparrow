@@ -53,6 +53,18 @@ void route_server::stop_impl() {
 	if (controller_port_) {
 		cache_.remove_service(table_controller_list, std::format("{}:{}", host, business_port_));
 	}
+
+	// clear all the sessions
+	auth_list_.clear(); 
+	auth_temp_.clear();
+	route_list_.clear();
+	route_temp_.clear();
+	business_list_.clear(); 
+	business_temp_.clear();
+	controller_list_.clear();
+	controller_temp_.clear();
+	business_lb_.stop();
+
 }
 
 void route_server::store_impl() {

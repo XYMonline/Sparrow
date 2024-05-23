@@ -14,8 +14,8 @@ route_session::route_session(beast::ssl_stream<beast::tcp_stream> stream, busine
 }
 
 void route_session::start_impl() {
-	message_type::route_auth msg;
-	msg.set_uri(server_.uri());
+	message_type::route_business msg;
+	msg.set_uri(uri_);
 	msg.set_category(message_type::SERVER_INFO);
 	deliver(msg.SerializeAsString());
 

@@ -180,7 +180,7 @@ private:
 		while (ws_.is_open()) {
 			n = co_await ws_.async_read(buffer, token);// 解析消息
 			if (!ec) {
-				std::println("message: {}", beast::buffers_to_string(buffer.data()));
+				//std::println("message: {}", beast::buffers_to_string(buffer.data()));
 				co_await read_channel_.async_send({}, beast::buffers_to_string(buffer.data()), token);
 				buffer.consume(n);
 			}

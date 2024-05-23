@@ -26,10 +26,15 @@ net::awaitable<void> business_session::handle_messages_impl(std::shared_ptr<busi
 		message = co_await read_channel_.async_receive(token);
 		if (!ec) {
 			// handle message
-			switch (msg.ParseFromString(message)) {
-			case message_type::SERVER_INFO:
-				server_.temp_add(shared_from_this());
-				break;
+			if (msg.ParseFromString(message)) {
+				std::println("{}", msg.DebugString());
+				switch (msg.category()) {
+				case message_type::UPDATE_LOAD:
+					break;
+				case message_type::SERVER_INFO:
+					server_.perm_add(msg.uri(), shared_from_this());
+					break;
+				}
 			}
 		}
 		else {

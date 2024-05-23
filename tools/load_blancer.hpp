@@ -16,158 +16,158 @@
 namespace net = boost::asio;
 
 namespace leo {
-
-	/*
+;
+/*
 	 * Session must have members:
 	 * - int load() -> return a comparable value of the load of the session
 	 * - void stop() -> stop the session
 	 */
-	template <typename Session, template<typename> class Derived>
-	struct algorithm_interface {
-		using session_ptr = std::shared_ptr<Session>;
-		using callback = std::function<void(session_ptr)>;
+template <typename Session, template<typename> class Derived>
+struct algorithm_interface {
+	using session_ptr = std::shared_ptr<Session>;
+	using callback = std::function<void(session_ptr)>;
 
-		void add_server(const std::string& key, session_ptr ptr) {
-			derived().add_server_impl(key, ptr);
-		}
+	void add_server(const std::string& key, session_ptr ptr) {
+		derived().add_server_impl(key, ptr);
+	}
 
-		void remove_server(const std::string& key) {
-			derived().remove_server_impl(key);
-		}
+	void remove_server(const std::string& key) {
+		derived().remove_server_impl(key);
+	}
 
-		void commit(callback task) {
-			derived().commit_impl(task);
-		}
+	void commit(callback task) {
+		derived().commit_impl(task);
+	}
 
-		void start() {
-			derived().start_impl();
-		}
+	void start() {
+		derived().start_impl();
+	}
 
-		void stop() {
-			derived().stop_impl();
-		}
+	void stop() {
+		derived().stop_impl();
+	}
 
-		size_t size() const {
-			return derived().size_impl();
-		}
+	size_t size() const {
+		return derived().size_impl();
+	}
 
-	private:
-		Derived<Session>& derived() {
-			return static_cast<Derived<Session>&>(*this);
-		}
-	};
+private:
+	Derived<Session>& derived() {
+		return static_cast<Derived<Session>&>(*this);
+	}
+};
 
-	template <typename Session>
-	class least_connections
-		: public algorithm_interface<Session, least_connections>
-		, public std::enable_shared_from_this<least_connections<Session>>
-	{
+template <typename Session>
+class least_connections
+	: public algorithm_interface<Session, least_connections>
+	, public std::enable_shared_from_this<least_connections<Session>>
+{
 
-	public:
-		using session_ptr = typename algorithm_interface<Session, least_connections>::session_ptr;
-		using callback = typename algorithm_interface<Session, least_connections>::callback;
+public:
+	using session_ptr = typename algorithm_interface<Session, least_connections>::session_ptr;
+	using callback = typename algorithm_interface<Session, least_connections>::callback;
 
-	private:
-		net::io_context::strand strand_;
-		std::map<std::string, session_ptr> servers_;
+private:
+	net::io_context::strand strand_;
+	std::map<std::string, session_ptr> servers_;
 
-	public:
-		least_connections(net::io_context& ioc)
-			: strand_{ ioc } {
-		}
+public:
+	least_connections(net::io_context& ioc)
+		: strand_{ ioc } {
+	}
 
-		~least_connections() = default;
+	~least_connections() = default;
 
-		void add_server_impl(const std::string& key, session_ptr ptr) {
-			auto self = this->shared_from_this();
-			strand_.post([this, key, ptr, self] {
-				servers_.emplace(key, ptr);
+	void add_server_impl(const std::string& key, session_ptr ptr) {
+		auto self = this->shared_from_this();
+		strand_.post([this, key, ptr, self] {
+			servers_.emplace(key, ptr);
+			});
+	}
+
+	void remove_server_impl(const std::string& key) {
+		auto self = this->shared_from_this();
+		strand_.post([this, key, self] {
+			servers_.erase(key);
+			});
+	}
+
+	void commit_impl(callback task) {
+		auto self = this->shared_from_this();
+		strand_.post([this, task, self] {
+			if (servers_.empty()) {
+				task(nullptr);
+				return;
+			}
+
+			auto it = std::min_element(servers_.begin(), servers_.end(),
+				[](const auto& a, const auto& b) {
+					return a.second->load() < b.second->load();
 				});
-		}
 
-		void remove_server_impl(const std::string& key) {
-			auto self = this->shared_from_this();
-			strand_.post([this, key, self] {
-				servers_.erase(key);
-				});
-		}
+			if (it != servers_.end()) {
+				task(it->second);
+			}
+			else {
+				task(servers_.begin()->second);
+			}
+			});
+	}
 
-		void commit_impl(callback task) {
-			auto self = this->shared_from_this();
-			strand_.post([this, task, self] {
-				if (servers_.empty()) {
-					task(nullptr);
-					return;
-				}
+	void start_impl() {
+		// Implement start logic if needed
+	}
 
-				auto it = std::min_element(servers_.begin(), servers_.end(),
-					[](const auto& a, const auto& b) {
-						return a.second->load() < b.second->load();
-					});
+	void stop_impl() {
+		auto self = this->shared_from_this();
+		strand_.post([this, self] {
+			for (auto&& [key, session] : servers_) {
+				session->stop();
+			}
+			});
+	}
 
-				if (it != servers_.end()) {
-					task(it->second);
-				}
-				else {
-					task(servers_.begin()->second);
-				}
-				});
-		}
+	size_t size_impl() const {
+		return servers_.size();
+	}
+};
 
-		void start_impl() {
-			// Implement start logic if needed
-		}
+template <typename Session, template<typename> class Algorithm>
+class load_balancer {
+	using session_ptr = typename Algorithm<Session>::session_ptr;
+	using callback = typename Algorithm<Session>::callback;
 
-		void stop_impl() {
-			auto self = this->shared_from_this();
-			strand_.post([this, self] {
-				for (auto&& [key, session] : servers_) {
-					session->stop();
-				}
-				});
-		}
+	std::shared_ptr<Algorithm<Session>> algorithm_;
 
-		size_t size_impl() const {
-			return servers_.size();
-		}
-	};
+public:
+	load_balancer(net::io_context& ioc)
+		: algorithm_{ std::make_shared<Algorithm<Session>>(ioc) } {
+	}
 
-	template <typename Session, template<typename> class Algorithm>
-	class load_balancer {
-		using session_ptr = typename Algorithm<Session>::session_ptr;
-		using callback = typename Algorithm<Session>::callback;
+	void add_server(const std::string& key, session_ptr ptr) {
+		algorithm_->add_server(key, ptr);
+	}
 
-		std::shared_ptr<Algorithm<Session>> algorithm_;
+	void remove_server(const std::string& key) {
+		algorithm_->remove_server(key);
+	}
 
-	public:
-		load_balancer(net::io_context& ioc)
-			: algorithm_{ std::make_shared<Algorithm<Session>>(ioc) } {
-		}
+	void commit(callback f) {
+		algorithm_->commit(f);
+	}
 
-		void add_server(const std::string& key, session_ptr ptr) {
-			algorithm_->add_server(key, ptr);
-		}
+	void start() {
+		algorithm_->start();
+	}
 
-		void remove_server(const std::string& key) {
-			algorithm_->remove_server(key);
-		}
+	void stop() {
+		algorithm_->stop();
+	}
 
-		void commit(callback f) {
-			algorithm_->commit(f);
-		}
-
-		void start() {
-			algorithm_->start();
-		}
-
-		void stop() {
-			algorithm_->stop();
-		}
-
-		size_t size() const {
-			return algorithm_->size();
-		}
-	};
+	size_t size() const {
+		return algorithm_->size();
+	}
+};
 
 }
 

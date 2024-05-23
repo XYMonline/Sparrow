@@ -27,7 +27,7 @@ class route_server
 	wrap_map<std::string, route_ptr>			route_list_, route_temp_;
 	wrap_map<std::string, business_ptr>			business_list_, business_temp_;
 	wrap_map<std::string, controller_ptr>		controller_list_, controller_temp_;
-	load_balancer<auth_ptr, least_connections>	business_lb_;
+	load_balancer<business_session, least_connections>	business_lb_;
 
 	uint16_t auth_port_{ 0 };
 	uint16_t route_port_{ 0 };

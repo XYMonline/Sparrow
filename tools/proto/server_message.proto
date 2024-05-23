@@ -22,8 +22,7 @@ message route_auth {
 message route_business {
     message_category category = 1; // 消息类别
     int32 server_load = 2; // 消息服务器负载
-    string session_id = 3; // 登录服务器的会话ID
-    string uri = 4; // 消息服务器地址
+    string uri = 3; // 消息服务器地址
 }
 
 message route_route {

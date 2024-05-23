@@ -1,4 +1,4 @@
-#include "auth_server.hpp"
+﻿#include "auth_server.hpp"
 #include "client_session.hpp"
 #include "route_session.hpp"
 
@@ -25,7 +25,9 @@ void auth_server::start_impl() {
 }
 
 void auth_server::stop_impl() {
-
+	clients_.clear();
+	client_temp_.clear();
+	route_lb_.stop();
 }
 
 void auth_server::store_impl() {

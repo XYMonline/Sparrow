@@ -21,7 +21,7 @@ class auth_server
 {
 	wrap_map<std::string, client_ptr>	clients_, client_temp_;
 	wrap_map<std::string, route_ptr>	routes_, route_temp_;
-	load_balancer<route_ptr, least_connections> route_lb_;
+	load_balancer<route_session, least_connections> route_lb_;
 
 public:
 	auth_server(net::io_context& ioc);

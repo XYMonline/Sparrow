@@ -36,6 +36,10 @@ public:
 		return map_.find(key);
 	}
 
+	auto clear() {
+		return map_.clear();
+	}
+
 	bool empty() {
 		std::lock_guard lock(mtx_);
 		return map_.empty();

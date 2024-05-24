@@ -99,6 +99,7 @@ public:
 
 		derived().start_impl();
 	}
+
 	void stop() { 
 		derived().stop_impl(); 
 	}

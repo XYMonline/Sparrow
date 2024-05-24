@@ -10,7 +10,6 @@ namespace route {
 class route_server;
 /*
  * communicate with auth server
- *
  */
 class auth_session
 	: public websocket_session<auth_session>
@@ -26,6 +25,7 @@ public:
 	net::awaitable<void> handle_messages_impl(std::shared_ptr<auth_session> self);
 
 	void start_impl();
+	void stop_impl() {}
 
 	static std::string server_name() {
 		return "route_server auth_session";

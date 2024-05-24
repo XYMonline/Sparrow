@@ -27,7 +27,7 @@ net::awaitable<void> business_session::handle_messages_impl(std::shared_ptr<busi
 		if (!ec) {
 			// handle message
 			if (msg.ParseFromString(message)) {
-				std::println("{}", msg.DebugString());
+				//std::println("{}", msg.DebugString());
 				switch (msg.category()) {
 				case message_type::UPDATE_LOAD:
 					break;

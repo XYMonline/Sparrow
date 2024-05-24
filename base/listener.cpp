@@ -3,7 +3,7 @@
 namespace leo {
 ;
 void listener::fail(boost::system::error_code ec, char const* what) {
-	if (ec == net::error::operation_aborted) {
+	if (ec == net::error::operation_aborted || ec == net::error::address_in_use) {
 		return;
 	}
 	std::println("{}: {} code: {}", what, ec.message(), ec.value());
@@ -34,11 +34,11 @@ uint16_t listener::acceptor_init(std::string_view port_range_key) {
 			continue;
 		}
 
-		acceptor->set_option(net::socket_base::reuse_address(true), ec);
-		if (ec) {
-			fail(ec, "set_option");
-			continue;
-		}
+		//acceptor->set_option(net::socket_base::reuse_address(true), ec);
+		//if (ec) {
+		//	fail(ec, "set_option");
+		//	continue;
+		//}
 
 		acceptor->bind(endpoint, ec);
 		if (ec) {

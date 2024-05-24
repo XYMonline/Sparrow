@@ -37,6 +37,10 @@ public:
 	}
 
 	auto clear() {
+		std::lock_guard lock(mtx_);
+		for (auto& [key, session] : map_) {
+			session->stop();
+		}
 		return map_.clear();
 	}
 

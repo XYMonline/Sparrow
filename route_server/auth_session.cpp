@@ -23,7 +23,7 @@ net::awaitable<void> auth_session::handle_messages_impl(std::shared_ptr<auth_ses
 		if (!ec) {
 			// handle message
 			if (msg.ParseFromString(message)) {
-				std::println("{}", msg.DebugString());
+				//std::println("{}", msg.DebugString());
 				switch (msg.category()) {
 				case message_type::REQUEST_ALLOCATE:
 					std::println("request allocate");

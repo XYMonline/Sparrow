@@ -10,7 +10,6 @@ namespace route {
 class route_server;
 /*
  * communicate with other route server
- *
  */
 class route_session
 	: public websocket_session<route_session>
@@ -24,6 +23,7 @@ public:
 	~route_session() = default;
 
 	void start_impl();
+	void stop_impl() {}
 
 	net::awaitable<void> handle_messages_impl(std::shared_ptr<route_session> self);
 

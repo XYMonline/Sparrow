@@ -16,8 +16,12 @@ business_server::business_server(net::io_context& ioc)
 
 void business_server::start_impl() {
 	auto listener = std::make_shared<leo::listener>(ioc_, ctx_);
-	listener->run<business_server, client_session>(*this, "business_client_port_range");
+	auto port = listener->run<business_server, client_session>(*this, "business_client_port_range");
 
+	if (port) {
+		set_uri(std::format("{}:{}", config_loader::load_config()["host"].get<std::string>(), port));
+		std::println("listening on port: {}", port);
+	}
 	connect_route();
 }
 
@@ -50,8 +54,9 @@ void business_server::connect_route() {
 			},
 			*this
 		);
-		route_->set_uri(uri);
+		route_->set_uri(uri_);
 		route_->start();
+		std::println("connect to route: {}", uri);
 		break;
 	}
 }

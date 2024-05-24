@@ -37,6 +37,7 @@ void route_server::start_impl() {
 		cache_.signup_service(table_business_list, std::format("{}:{}", host, business_port_));
 		std::println("listening business_server on port: {}", business_port_);
 	}
+	std::println("start finished");
 }
 
 void route_server::stop_impl() {

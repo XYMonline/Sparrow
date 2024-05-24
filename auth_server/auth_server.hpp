@@ -68,7 +68,8 @@ inline void auth_server::perm_add_impl(std::string key, SessionPtr ptr) {
 		if (routes_.emplace(key, ptr).second) {
 			route_lb_.add_server(key, ptr);
 			route_temp_.erase(ptr->uuid());
-			res = true;
+			// dont print route join message
+			return;
 		}
 	}
 	if (res) {

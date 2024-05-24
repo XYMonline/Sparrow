@@ -19,7 +19,10 @@ auth_server::auth_server(net::io_context& ioc)
 void auth_server::start_impl() {
 	auto listener = std::make_shared<leo::listener>(ioc_, ctx_);
 	auto port = listener->run<auth_server, client_session>(*this, "auth_client_port_range");
-	set_uri(std::format("{}:{}", config_loader::load_config()["host"].get<std::string>(), port));
+	if (port) {
+		set_uri(std::format("{}:{}", config_loader::load_config()["host"].get<std::string>(), port));
+		std::println("listening on port: {}", port);
+	}
 
 	connect_route();
 }
@@ -36,6 +39,7 @@ void auth_server::store_impl() {
 
 void auth_server::connect_route() {
 	boost::system::error_code ec;
+	auto host = config_loader::load_config()["host"].get<std::string>();
 	auto route_list = cache_.get_services(table_auth_list);
 	for (auto& uri : route_list) {
 		auto [host, port] = uri2host_port(uri);
@@ -54,8 +58,9 @@ void auth_server::connect_route() {
 			},
 			*this
 		);
-		route->set_uri(uri);
+		route->set_uri(uri_);
 		route->start();
+		std::println("connect to route: {}", uri);
 	}
 }
 

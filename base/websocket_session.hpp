@@ -57,7 +57,7 @@ public:
 	}
 
 	~websocket_session() {
-		std::println("destroy websocket_session");
+		std::println("destroy {} uuid: {}", derived().server_name(), derived().uuid());
 	}
 
 	std::string uuid() const {
@@ -106,6 +106,7 @@ public:
 		write_lock_.close();
 
 		std::println("shutdown and close socket");
+		derived().stop_impl();
 	}
 
 protected:

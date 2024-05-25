@@ -43,6 +43,8 @@ public:
 	void stop_impl();
 	void store_impl();
 
+	route_ptr make_route_session(const std::string& uri);
+
 	template<typename SessionPtr> void temp_add_impl(SessionPtr ptr);
 	template<typename SessionPtr> void perm_add_impl(std::string key, SessionPtr ptr);
 	template<typename SessionPtr> void temp_remove_impl(std::string key);
@@ -116,7 +118,9 @@ inline void route_server::temp_remove_impl(std::string key) {
 		res = auth_temp_.erase(key);
 	}
 	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
-		res = route_temp_.erase(key);
+		//because the route_session may be join to perm_list at once, so we need to erase both
+		res = true;
+		route_temp_.erase(key);
 	}
 	else if constexpr (std::is_same_v<SessionPtr, business_ptr>) {
 		res = business_temp_.erase(key);

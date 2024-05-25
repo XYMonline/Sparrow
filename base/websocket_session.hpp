@@ -109,6 +109,10 @@ public:
 		derived().stop_impl();
 	}
 
+	void set_role(ssl::stream_base::handshake_type role) {
+		role_ = role;
+	}
+
 protected:
 	void fail(boost::system::error_code ec, char const* what, const char* who = "") {
 		if (ec == net::error::operation_aborted || !ec || ec == expr::error::channel_cancelled) {
@@ -119,10 +123,6 @@ protected:
 			return;
 		}
 		std::println("{}: {} code: {} {}", what, ec.message(), ec.value(), who);
-	}
-
-	void set_role(ssl::stream_base::handshake_type role) {
-		role_ = role;
 	}
 
 private:

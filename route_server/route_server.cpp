@@ -20,10 +20,10 @@ route_server::route_server(net::io_context& ioc)
 
 void route_server::start_impl() {
 	auto listener		= std::make_shared<leo::listener>(ioc_, ctx_);
-	auth_port_			= listener->run<route_server, auth_session>(*this, "route_auth_port_range");
+	//auth_port_			= listener->run<route_server, auth_session>(*this, "route_auth_port_range");
 	route_port_			= listener->run<route_server, route_session>(*this, "route_route_port_range");
-	business_port_		= listener->run<route_server, business_session>(*this, "route_business_port_range");
-	controller_port_	= listener->run<route_server, controller_session>(*this, "route_controller_port_range");
+	//business_port_		= listener->run<route_server, business_session>(*this, "route_business_port_range");
+	//controller_port_	= listener->run<route_server, controller_session>(*this, "route_controller_port_range");
 
 	// signup services
 	std::string host{ config_loader::load_config()["host"].get<std::string>() };
@@ -31,20 +31,21 @@ void route_server::start_impl() {
 		cache_.signup_service(table_auth_list, std::format("{}:{}", host, auth_port_));
 		std::println("listening autn_server on port: {}", auth_port_);
 	}
+	if (business_port_) {
+		cache_.signup_service(table_business_list, std::format("{}:{}", host, business_port_));
+		std::println("listening business_server on port: {}", business_port_);
+	}
 	if (route_port_) {
 		cache_.signup_service(table_route_list, std::format("{}:{}", host, route_port_));
 		std::println("listening route_server on port: {}", route_port_);
 		set_uri(std::format("{}:{}", host, route_port_));
-	}
-	if (business_port_) {
-		cache_.signup_service(table_business_list, std::format("{}:{}", host, business_port_));
-		std::println("listening business_server on port: {}", business_port_);
+
+		connect_route();
 	}
 }
 
 void route_server::connect_route() {
 	boost::system::error_code ec;
-	message_type::route_route msg;
 	auto host = config_loader::load_config()["host"].get<std::string>();
 	auto route_list = cache_.get_services(table_route_list);
 	for (auto& uri : route_list) {
@@ -53,31 +54,21 @@ void route_server::connect_route() {
 			continue;
 		}
 
-		auto [host, port] = uri2host_port(uri);
-		tcp::resolver resolver{ ioc_ };
-		auto endpoints = resolver.resolve(host, port);
-		tcp::socket socket{ ioc_ };
-		net::connect(socket, endpoints, ec);
-		if (ec) {
+		auto route = make_route_session(uri);
+		if (!route) {
 			std::println("connect_route failed: {} code: {}", ec.message(), ec.value());
 			continue;
 		}
-		auto route = std::make_shared<route_session>(
-			beast::ssl_stream<beast::tcp_stream>{
-			beast::tcp_stream{ std::move(socket) },
-				ctx_
-		},
-			* this
-		);
+
+		route->set_role(ssl::stream_base::client);
 		route->set_uri(uri_);
 		route->start();
-		perm_add(uri, route);
 		std::println("connect to route: {}", uri);
 
-		msg.set_uri(uri_);
+		message_type::route_route msg;
 		msg.set_category(message_type::SERVER_INFO);
+		msg.set_uri(uri_);
 		route->deliver(msg.SerializeAsString());
-		msg.Clear();
 	}
 }
 
@@ -111,6 +102,29 @@ void route_server::stop_impl() {
 }
 
 void route_server::store_impl() {
+}
+
+route_ptr route_server::make_route_session(const std::string& uri) {
+	boost::system::error_code ec;
+	auto [host, port] = uri2host_port(uri);
+	tcp::resolver resolver{ ioc_ };
+	auto endpoints = resolver.resolve(host, port);
+	tcp::socket socket{ ioc_ };
+	net::connect(socket, endpoints, ec);
+	if (ec) {
+		return nullptr;
+	}
+
+	auto route = std::make_shared<route_session>(
+			beast::ssl_stream<beast::tcp_stream>{
+				beast::tcp_stream{ std::move(socket) },
+				ctx_
+			},
+			* this
+		);
+
+	route_out_.emplace(uri, route);
+	return route;
 }
 
 }

@@ -26,6 +26,11 @@ public:
 	void store_impl();
 
 	void connect_route();
+
+	template<typename SessionPtr> void temp_add_impl(SessionPtr ptr) {}
+	template<typename SessionPtr> void perm_add_impl(std::string key, SessionPtr ptr) {}
+	template<typename SessionPtr> void temp_remove_impl(std::string key) {}
+	template<typename SessionPtr> void perm_remove_impl(std::string key) {}
 };
 
 }

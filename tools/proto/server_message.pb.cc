@@ -39,8 +39,7 @@ struct route_authDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 route_authDefaultTypeInternal _route_auth_default_instance_;
 PROTOBUF_CONSTEXPR route_business::route_business(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.session_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.uri_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+    /*decltype(_impl_.uri_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.category_)*/0
   , /*decltype(_impl_.server_load_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
@@ -56,6 +55,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORIT
 PROTOBUF_CONSTEXPR route_route::route_route(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.uri_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.token_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.category_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct route_routeDefaultTypeInternal {
@@ -91,7 +91,6 @@ const uint32_t TableStruct_server_5fmessage_2eproto::offsets[] PROTOBUF_SECTION_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::message_type::route_business, _impl_.category_),
   PROTOBUF_FIELD_OFFSET(::message_type::route_business, _impl_.server_load_),
-  PROTOBUF_FIELD_OFFSET(::message_type::route_business, _impl_.session_id_),
   PROTOBUF_FIELD_OFFSET(::message_type::route_business, _impl_.uri_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::message_type::route_route, _internal_metadata_),
@@ -101,11 +100,12 @@ const uint32_t TableStruct_server_5fmessage_2eproto::offsets[] PROTOBUF_SECTION_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::message_type::route_route, _impl_.category_),
   PROTOBUF_FIELD_OFFSET(::message_type::route_route, _impl_.uri_),
+  PROTOBUF_FIELD_OFFSET(::message_type::route_route, _impl_.token_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::message_type::route_auth)},
   { 10, -1, -1, sizeof(::message_type::route_business)},
-  { 20, -1, -1, sizeof(::message_type::route_route)},
+  { 19, -1, -1, sizeof(::message_type::route_route)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -118,20 +118,20 @@ const char descriptor_table_protodef_server_5fmessage_2eproto[] PROTOBUF_SECTION
   "\n\024server_message.proto\022\014message_type\"o\n\n"
   "route_auth\0220\n\010category\030\001 \001(\0162\036.message_t"
   "ype.message_category\022\023\n\013server_load\030\002 \001("
-  "\005\022\r\n\005token\030\003 \001(\t\022\013\n\003uri\030\004 \001(\t\"x\n\016route_b"
+  "\005\022\r\n\005token\030\003 \001(\t\022\013\n\003uri\030\004 \001(\t\"d\n\016route_b"
   "usiness\0220\n\010category\030\001 \001(\0162\036.message_type"
-  ".message_category\022\023\n\013server_load\030\002 \001(\005\022\022"
-  "\n\nsession_id\030\003 \001(\t\022\013\n\003uri\030\004 \001(\t\"L\n\013route"
-  "_route\0220\n\010category\030\001 \001(\0162\036.message_type."
-  "message_category\022\013\n\003uri\030\002 \001(\t*\224\001\n\020messag"
-  "e_category\022\024\n\020REQUEST_ALLOCATE\020\000\022\024\n\020ALLO"
-  "CATE_SUCCESS\020\001\022\021\n\rALLOCATE_FAIL\020\002\022\016\n\nROU"
-  "TE_JOIN\020\003\022\017\n\013ROUTE_LEAVE\020\004\022\017\n\013UPDATE_LOA"
-  "D\020\005\022\017\n\013SERVER_INFO\020\006b\006proto3"
+  ".message_category\022\023\n\013server_load\030\002 \001(\005\022\013"
+  "\n\003uri\030\003 \001(\t\"[\n\013route_route\0220\n\010category\030\001"
+  " \001(\0162\036.message_type.message_category\022\013\n\003"
+  "uri\030\002 \001(\t\022\r\n\005token\030\003 \001(\t*\224\001\n\020message_cat"
+  "egory\022\024\n\020REQUEST_ALLOCATE\020\000\022\024\n\020ALLOCATE_"
+  "SUCCESS\020\001\022\021\n\rALLOCATE_FAIL\020\002\022\016\n\nROUTE_JO"
+  "IN\020\003\022\017\n\013ROUTE_LEAVE\020\004\022\017\n\013UPDATE_LOAD\020\005\022\017"
+  "\n\013SERVER_INFO\020\006b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_server_5fmessage_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_server_5fmessage_2eproto = {
-    false, false, 508, descriptor_table_protodef_server_5fmessage_2eproto,
+    false, false, 503, descriptor_table_protodef_server_5fmessage_2eproto,
     "server_message.proto",
     &descriptor_table_server_5fmessage_2eproto_once, nullptr, 0, 3,
     schemas, file_default_instances, TableStruct_server_5fmessage_2eproto::offsets,
@@ -497,21 +497,12 @@ route_business::route_business(const route_business& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   route_business* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.session_id_){}
-    , decltype(_impl_.uri_){}
+      decltype(_impl_.uri_){}
     , decltype(_impl_.category_){}
     , decltype(_impl_.server_load_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _impl_.session_id_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.session_id_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_session_id().empty()) {
-    _this->_impl_.session_id_.Set(from._internal_session_id(), 
-      _this->GetArenaForAllocation());
-  }
   _impl_.uri_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.uri_.Set("", GetArenaForAllocation());
@@ -531,16 +522,11 @@ inline void route_business::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.session_id_){}
-    , decltype(_impl_.uri_){}
+      decltype(_impl_.uri_){}
     , decltype(_impl_.category_){0}
     , decltype(_impl_.server_load_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
-  _impl_.session_id_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.session_id_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   _impl_.uri_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.uri_.Set("", GetArenaForAllocation());
@@ -558,7 +544,6 @@ route_business::~route_business() {
 
 inline void route_business::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.session_id_.Destroy();
   _impl_.uri_.Destroy();
 }
 
@@ -572,7 +557,6 @@ void route_business::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  _impl_.session_id_.ClearToEmpty();
   _impl_.uri_.ClearToEmpty();
   ::memset(&_impl_.category_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&_impl_.server_load_) -
@@ -603,19 +587,9 @@ const char* route_business::_InternalParse(const char* ptr, ::_pbi::ParseContext
         } else
           goto handle_unusual;
         continue;
-      // string session_id = 3;
+      // string uri = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
-          auto str = _internal_mutable_session_id();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "message_type.route_business.session_id"));
-        } else
-          goto handle_unusual;
-        continue;
-      // string uri = 4;
-      case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
           auto str = _internal_mutable_uri();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
@@ -665,24 +639,14 @@ uint8_t* route_business::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_server_load(), target);
   }
 
-  // string session_id = 3;
-  if (!this->_internal_session_id().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_session_id().data(), static_cast<int>(this->_internal_session_id().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "message_type.route_business.session_id");
-    target = stream->WriteStringMaybeAliased(
-        3, this->_internal_session_id(), target);
-  }
-
-  // string uri = 4;
+  // string uri = 3;
   if (!this->_internal_uri().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_uri().data(), static_cast<int>(this->_internal_uri().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
       "message_type.route_business.uri");
     target = stream->WriteStringMaybeAliased(
-        4, this->_internal_uri(), target);
+        3, this->_internal_uri(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -701,14 +665,7 @@ size_t route_business::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string session_id = 3;
-  if (!this->_internal_session_id().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_session_id());
-  }
-
-  // string uri = 4;
+  // string uri = 3;
   if (!this->_internal_uri().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
@@ -744,9 +701,6 @@ void route_business::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const :
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  if (!from._internal_session_id().empty()) {
-    _this->_internal_set_session_id(from._internal_session_id());
-  }
   if (!from._internal_uri().empty()) {
     _this->_internal_set_uri(from._internal_uri());
   }
@@ -775,10 +729,6 @@ void route_business::InternalSwap(route_business* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.session_id_, lhs_arena,
-      &other->_impl_.session_id_, rhs_arena
-  );
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.uri_, lhs_arena,
       &other->_impl_.uri_, rhs_arena
@@ -814,6 +764,7 @@ route_route::route_route(const route_route& from)
   route_route* const _this = this; (void)_this;
   new (&_impl_) Impl_{
       decltype(_impl_.uri_){}
+    , decltype(_impl_.token_){}
     , decltype(_impl_.category_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
@@ -826,6 +777,14 @@ route_route::route_route(const route_route& from)
     _this->_impl_.uri_.Set(from._internal_uri(), 
       _this->GetArenaForAllocation());
   }
+  _impl_.token_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.token_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_token().empty()) {
+    _this->_impl_.token_.Set(from._internal_token(), 
+      _this->GetArenaForAllocation());
+  }
   _this->_impl_.category_ = from._impl_.category_;
   // @@protoc_insertion_point(copy_constructor:message_type.route_route)
 }
@@ -836,12 +795,17 @@ inline void route_route::SharedCtor(
   (void)is_message_owned;
   new (&_impl_) Impl_{
       decltype(_impl_.uri_){}
+    , decltype(_impl_.token_){}
     , decltype(_impl_.category_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.uri_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.uri_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.token_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.token_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
@@ -857,6 +821,7 @@ route_route::~route_route() {
 inline void route_route::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.uri_.Destroy();
+  _impl_.token_.Destroy();
 }
 
 void route_route::SetCachedSize(int size) const {
@@ -870,6 +835,7 @@ void route_route::Clear() {
   (void) cached_has_bits;
 
   _impl_.uri_.ClearToEmpty();
+  _impl_.token_.ClearToEmpty();
   _impl_.category_ = 0;
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
@@ -896,6 +862,16 @@ const char* route_route::_InternalParse(const char* ptr, ::_pbi::ParseContext* c
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
           CHK_(::_pbi::VerifyUTF8(str, "message_type.route_route.uri"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string token = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          auto str = _internal_mutable_token();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "message_type.route_route.token"));
         } else
           goto handle_unusual;
         continue;
@@ -945,6 +921,16 @@ uint8_t* route_route::_InternalSerialize(
         2, this->_internal_uri(), target);
   }
 
+  // string token = 3;
+  if (!this->_internal_token().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_token().data(), static_cast<int>(this->_internal_token().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "message_type.route_route.token");
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_token(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -966,6 +952,13 @@ size_t route_route::ByteSizeLong() const {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_uri());
+  }
+
+  // string token = 3;
+  if (!this->_internal_token().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_token());
   }
 
   // .message_type.message_category category = 1;
@@ -995,6 +988,9 @@ void route_route::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PR
   if (!from._internal_uri().empty()) {
     _this->_internal_set_uri(from._internal_uri());
   }
+  if (!from._internal_token().empty()) {
+    _this->_internal_set_token(from._internal_token());
+  }
   if (from._internal_category() != 0) {
     _this->_internal_set_category(from._internal_category());
   }
@@ -1020,6 +1016,10 @@ void route_route::InternalSwap(route_route* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.uri_, lhs_arena,
       &other->_impl_.uri_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.token_, lhs_arena,
+      &other->_impl_.token_, rhs_arena
   );
   swap(_impl_.category_, other->_impl_.category_);
 }

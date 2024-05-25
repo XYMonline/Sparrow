@@ -16,6 +16,11 @@ void business_session::start_impl() {
 	server_.temp_add(shared_from_this());
 }
 
+void business_session::stop_impl() {
+	server_.temp_remove<business_session>(uuid());
+	server_.perm_remove<business_session>(uri_);
+}
+
 net::awaitable<void> business_session::handle_messages_impl(std::shared_ptr<business_session> self) {
 	boost::system::error_code ec;
 	auto token = net::redirect_error(net::deferred, ec);

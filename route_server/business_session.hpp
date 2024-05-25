@@ -23,7 +23,7 @@ public:
 	~business_session() = default;
 
 	void start_impl();
-	void stop_impl() {}
+	void stop_impl();
 
 	net::awaitable<void> handle_messages_impl(std::shared_ptr<business_session> self);
 

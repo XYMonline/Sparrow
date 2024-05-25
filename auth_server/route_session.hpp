@@ -22,7 +22,7 @@ public:
 	route_session(beast::ssl_stream<beast::tcp_stream> stream, auth_server& server);
 
 	void start_impl();
-	void stop_impl() {}
+	void stop_impl();
 
 	net::awaitable<void> handle_messages_impl(std::shared_ptr<route_session> self);
 

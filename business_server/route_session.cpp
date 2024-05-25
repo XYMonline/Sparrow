@@ -20,6 +20,11 @@ void route_session::start_impl() {
 	deliver(msg.SerializeAsString());
 }
 
+void route_session::stop_impl() {
+	server_.temp_remove<route_session>(uuid());
+	server_.perm_remove<route_session>(uri_);
+}
+
 net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_session> self) {
 	boost::system::error_code ec;
 	auto token = net::redirect_error(net::deferred, ec);

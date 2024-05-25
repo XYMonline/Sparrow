@@ -48,6 +48,11 @@ void auth_session::start_impl() {
 	server_.temp_add<auth_ptr>(shared_from_this());
 }
 
+void auth_session::stop_impl() {
+	server_.temp_remove<auth_session>(uuid());
+	server_.perm_remove<auth_session>(uri_);
+}
+
 cancellation_signals& auth_session::signals() {
 	return server_.signals();
 }

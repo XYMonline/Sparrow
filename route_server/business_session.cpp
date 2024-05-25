@@ -40,6 +40,7 @@ net::awaitable<void> business_session::handle_messages_impl(std::shared_ptr<busi
 		else {
 			this->fail(ec, "handle_messages");
 		}
+		msg.Clear();
 	}
 }
 

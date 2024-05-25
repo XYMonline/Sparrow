@@ -5,6 +5,8 @@
 #include "business_session.hpp"
 #include "controller_session.hpp"
 
+#include "../tools/proto/server_message.pb.h"
+
 #include <format>
 
 namespace leo {
@@ -38,7 +40,45 @@ void route_server::start_impl() {
 		cache_.signup_service(table_business_list, std::format("{}:{}", host, business_port_));
 		std::println("listening business_server on port: {}", business_port_);
 	}
-	std::println("start finished");
+}
+
+void route_server::connect_route() {
+	boost::system::error_code ec;
+	message_type::route_route msg;
+	auto host = config_loader::load_config()["host"].get<std::string>();
+	auto route_list = cache_.get_services(table_route_list);
+	for (auto& uri : route_list) {
+		if (uri == uri_) {
+			// skip self
+			continue;
+		}
+
+		auto [host, port] = uri2host_port(uri);
+		tcp::resolver resolver{ ioc_ };
+		auto endpoints = resolver.resolve(host, port);
+		tcp::socket socket{ ioc_ };
+		net::connect(socket, endpoints, ec);
+		if (ec) {
+			std::println("connect_route failed: {} code: {}", ec.message(), ec.value());
+			continue;
+		}
+		auto route = std::make_shared<route_session>(
+			beast::ssl_stream<beast::tcp_stream>{
+			beast::tcp_stream{ std::move(socket) },
+				ctx_
+		},
+			* this
+		);
+		route->set_uri(uri_);
+		route->start();
+		perm_add(uri, route);
+		std::println("connect to route: {}", uri);
+
+		msg.set_uri(uri_);
+		msg.set_category(message_type::SERVER_INFO);
+		route->deliver(msg.SerializeAsString());
+		msg.Clear();
+	}
 }
 
 void route_server::stop_impl() {
@@ -53,13 +93,14 @@ void route_server::stop_impl() {
 		cache_.remove_service(table_business_list, std::format("{}:{}", host, business_port_));
 	}
 	if (controller_port_) {
-		cache_.remove_service(table_controller_list, std::format("{}:{}", host, business_port_));
+		cache_.remove_service(table_controller_list, std::format("{}:{}", host, controller_port_));
 	}
 
 	// clear all the sessions
 	auth_list_.clear(); 
 	auth_temp_.clear();
-	route_list_.clear();
+	route_in_.clear();
+	route_out_.clear();
 	route_temp_.clear();
 	business_list_.clear(); 
 	business_temp_.clear();

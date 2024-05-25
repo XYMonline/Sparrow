@@ -24,15 +24,28 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 	boost::system::error_code ec;
 	auto token = net::redirect_error(net::deferred, ec);
 	std::string message;
+	message_type::route_business msg;
 
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);
 		if (!ec) {
 			// handle message
+			if (msg.ParseFromString(message)) {
+				switch (msg.category()) {
+				
+				default:
+					std::println("Debug message:\n{}", msg.DebugString());
+					break;
+				}
+			}
+			else {
+				std::println("parse message failed: {}", message);
+			}
 		}
 		else {
 			this->fail(ec, "handle_messages");
 		}
+		msg.Clear();
 	}
 }
 

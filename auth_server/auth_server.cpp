@@ -30,6 +30,7 @@ void auth_server::start_impl() {
 void auth_server::stop_impl() {
 	clients_.clear();
 	client_temp_.clear();
+	routes_.clear();
 	route_lb_.stop();
 }
 

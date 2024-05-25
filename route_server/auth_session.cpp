@@ -32,8 +32,6 @@ net::awaitable<void> auth_session::handle_messages_impl(std::shared_ptr<auth_ses
 					server_.perm_add(msg.uri(), shared_from_this());
 					break;
 				}
-
-				msg.Clear();
 			}
 			else {
 				std::println("parse message failed, message: {}", message);
@@ -42,6 +40,7 @@ net::awaitable<void> auth_session::handle_messages_impl(std::shared_ptr<auth_ses
 		else {
 			this->fail(ec, "handle_messages");
 		}
+		msg.Clear();
 	}
 }
 

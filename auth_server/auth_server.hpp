@@ -20,7 +20,7 @@ class auth_server
 	, public std::enable_shared_from_this<auth_server> 
 {
 	wrap_map<std::string, client_ptr>	clients_, client_temp_;
-	wrap_map<std::string, route_ptr>	routes_, route_temp_;
+	wrap_map<std::string, route_ptr>	routes_;
 	load_balancer<route_session, least_connections> route_lb_;
 
 public:
@@ -44,9 +44,6 @@ inline void auth_server::temp_add_impl(SessionPtr ptr) {
 	if constexpr (std::is_same_v<SessionPtr, client_ptr>) {
 		res = client_temp_.emplace(ptr->uuid(), ptr).second;
 	}
-	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
-		res = route_temp_.emplace(ptr->uuid(), ptr).second;
-	}
 	if (res) {
 		std::println("temp_session: {} join", ptr->uuid());
 	}
@@ -67,7 +64,6 @@ inline void auth_server::perm_add_impl(std::string key, SessionPtr ptr) {
 	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
 		if (routes_.emplace(key, ptr).second) {
 			route_lb_.add_server(key, ptr);
-			route_temp_.erase(ptr->uuid());
 			// dont print route join message
 			return;
 		}
@@ -85,9 +81,6 @@ inline void auth_server::temp_remove_impl(std::string key) {
 	bool res{ false };
 	if constexpr (std::is_same_v<SessionPtr, client_ptr>) {
 		res = client_temp_.erase(key);
-	}
-	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
-		res = route_temp_.erase(key);
 	}
 	if (res) {
 		std::println("temp_session: {} leave", key);

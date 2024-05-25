@@ -123,8 +123,8 @@ public:
 		strand_.post([this, self] {
 			for (auto&& [key, session] : servers_) {
 				session->stop();
-				servers_.clear();
 			}
+			servers_.clear();
 			});
 	}
 

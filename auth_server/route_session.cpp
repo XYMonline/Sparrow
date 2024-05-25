@@ -15,7 +15,6 @@ route_session::route_session(beast::ssl_stream<beast::tcp_stream> stream, auth_s
 }
 
 void route_session::start_impl() {
-	server_.perm_add(uri_, shared_from_this());
 	message_type::route_auth msg;
 	msg.set_uri(uri_);
 	msg.set_category(message_type::SERVER_INFO);

@@ -60,6 +60,7 @@ void auth_server::connect_route() {
 		);
 		route->set_uri(uri_);
 		route->start();
+		perm_add(uri, route);
 		std::println("connect to route: {}", uri);
 	}
 }

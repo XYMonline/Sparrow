@@ -18,7 +18,6 @@ void route_session::start_impl() {
 	msg.set_uri(uri_);
 	msg.set_category(message_type::SERVER_INFO);
 	deliver(msg.SerializeAsString());
-
 }
 
 net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_session> self) {

@@ -32,6 +32,7 @@ void route_server::start_impl() {
 	if (route_port_) {
 		cache_.signup_service(table_route_list, std::format("{}:{}", host, route_port_));
 		std::println("listening route_server on port: {}", route_port_);
+		set_uri(std::format("{}:{}", host, route_port_));
 	}
 	if (business_port_) {
 		cache_.signup_service(table_business_list, std::format("{}:{}", host, business_port_));

@@ -26,7 +26,10 @@ void business_server::start_impl() {
 }
 
 void business_server::stop_impl() {
-
+	clients_.clear();
+	client_temp_.clear();
+	route_->stop();
+	route_.reset();
 }
 
 void business_server::store_impl() {

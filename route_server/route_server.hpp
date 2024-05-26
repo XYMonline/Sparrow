@@ -24,7 +24,7 @@ class route_server
 	, public std::enable_shared_from_this<route_server>
 {
 	wrap_map<std::string, auth_ptr>				auth_list_, auth_temp_;
-	wrap_map<std::string, route_ptr>			route_list_, route_temp_;
+	wrap_map<std::string, route_ptr>			route_list_, route_temp_; // in -> 监听到的连接, out -> 连接到的服务器, temp -> 临时存储
 	wrap_map<std::string, business_ptr>			business_list_, business_temp_;
 	wrap_map<std::string, controller_ptr>		controller_list_, controller_temp_;
 	load_balancer<business_session, least_connections>	business_lb_;
@@ -34,11 +34,17 @@ class route_server
 	uint16_t business_port_{ 0 };
 	uint16_t controller_port_{ 0 };
 
+private:
+	void connect_route();
+
 public:
 	route_server(net::io_context& ioc);
 	void start_impl();
 	void stop_impl();
 	void store_impl();
+
+	// 创建一个连接到指定uri的route_session
+	route_ptr make_route_session(const std::string& uri);
 
 	template<typename SessionPtr> void temp_add_impl(SessionPtr ptr);
 	template<typename SessionPtr> void perm_add_impl(std::string key, SessionPtr ptr);
@@ -74,31 +80,32 @@ inline void route_server::perm_add_impl(std::string key, SessionPtr ptr) { // ke
 	bool res{ false };
 	if constexpr (std::is_same_v<SessionPtr, auth_ptr>) {
 		if (auth_list_.emplace(key, ptr).second) {
-			auth_temp_.erase(ptr->uuid());
+			//auth_temp_.erase(ptr->uuid());
 			res = true;
 		}
 	}
 	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
-		if (route_list_.emplace(key, ptr).second) {
-			route_temp_.erase(ptr->uuid());
+		if (route_temp_.emplace(key, ptr).second) {
+			//route_temp_.erase(ptr->uuid());
 			res = true;
 		}
 	}
 	else if constexpr (std::is_same_v<SessionPtr, business_ptr>) {
 		if (business_list_.emplace(key, ptr).second) {
 			business_lb_.add_server(key, ptr);
-			business_temp_.erase(ptr->uuid());
+			//business_temp_.erase(ptr->uuid());
 			res = true;
 		}
 	}
 	else if constexpr (std::is_same_v<SessionPtr, controller_ptr>) {
 		if (controller_list_.emplace(key, ptr).second) {
-			controller_temp_.erase(ptr->uuid());
+			//controller_temp_.erase(ptr->uuid());
 			res = true;
 		}
 	}
 	if (res) {
 		std::println("perm_session: {} join, uuid: {}", key, ptr->uuid());
+		this->temp_remove<SessionPtr>(ptr->uuid());
 	}
 	else {
 		std::println("perm_session: {} already exist", key);
@@ -112,20 +119,18 @@ inline void route_server::temp_remove_impl(std::string key) {
 		res = auth_temp_.erase(key);
 	}
 	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
+		//because the route_session may be join to perm_list at once, so we need to erase both
 		res = route_temp_.erase(key);
 	}
 	else if constexpr (std::is_same_v<SessionPtr, business_ptr>) {
 		res = business_temp_.erase(key);
-		res = res && business_lb_.remove_server(key);
+		business_lb_.remove_server(key);
 	}
 	else if constexpr (std::is_same_v<SessionPtr, controller_ptr>) {
 		res = controller_temp_.erase(key);
 	}
 	if (res) {
 		std::println("temp_session: {} leave", key);
-	}
-	else {
-		std::println("temp_session: {} not exist", key);
 	}
 }
 

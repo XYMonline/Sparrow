@@ -28,5 +28,6 @@ message route_business {
 message route_route {
     message_category category = 1; // 消息类别
     string uri = 2; // 路由服务器地址
+    string token = 3; // 用于是否是验证主动连接的服务器连接到自己
 }
 

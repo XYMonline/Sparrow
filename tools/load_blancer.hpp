@@ -124,6 +124,7 @@ public:
 			for (auto&& [key, session] : servers_) {
 				session->stop();
 			}
+			servers_.clear();
 			});
 	}
 

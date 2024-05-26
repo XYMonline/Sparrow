@@ -68,6 +68,10 @@ public:
 	{
 	}
 
+	~server() {
+		std::println("server::~server");
+	}
+
 	void start() {
 		error_code ec;
 		auto& conf = config_loader::load_config();
@@ -99,6 +103,7 @@ public:
 
 		derived().start_impl();
 	}
+
 	void stop() { 
 		derived().stop_impl(); 
 	}

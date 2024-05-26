@@ -13,22 +13,39 @@ controller_session::controller_session(beast::ssl_stream<beast::tcp_stream> stre
 }
 
 void controller_session::start_impl() {
-	server_.temp_add(shared_from_this());
+	//server_.temp_add(shared_from_this());
+}
+
+void controller_session::stop_impl() {
+	server_.temp_remove<controller_ptr>(uuid());
+	server_.perm_remove<controller_ptr>(uuid());
 }
 
 net::awaitable<void> controller_session::handle_messages_impl(std::shared_ptr<controller_session> self) {
 	boost::system::error_code ec;
 	auto token = net::redirect_error(net::deferred, ec);
 	std::string message;
+	message_type::route_controller msg;
 
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);
-		if (!ec) {
+		if (!ec) [[likely]] {
 			// handle message
+			if (msg.ParseFromString(message)) [[likely]] {
+				switch (msg.category()) {
+				default:
+					std::println("Debug message:\n{}", msg.DebugString());
+					break;
+				}
+			}
+			else {
+				std::println("parse message failed: {}", message);
+			}
 		}
 		else {
 			this->fail(ec, "handle_messages");
 		}
+		msg.Clear();
 	}
 }
 

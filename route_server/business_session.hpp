@@ -10,7 +10,6 @@ namespace route {
 class route_server;
 /*
  * communicate with business server
- *
  */
 class business_session
 	: public websocket_session<business_session>
@@ -24,6 +23,7 @@ public:
 	~business_session() = default;
 
 	void start_impl();
+	void stop_impl();
 
 	net::awaitable<void> handle_messages_impl(std::shared_ptr<business_session> self);
 

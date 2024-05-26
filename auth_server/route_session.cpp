@@ -15,22 +15,41 @@ route_session::route_session(beast::ssl_stream<beast::tcp_stream> stream, auth_s
 }
 
 void route_session::start_impl() {
-	server_.perm_add(uri_, shared_from_this());
 	message_type::route_auth msg;
 	msg.set_uri(uri_);
 	msg.set_category(message_type::SERVER_INFO);
 	deliver(msg.SerializeAsString());
 }
 
+void route_session::stop_impl() {
+	server_.perm_remove<route_ptr>(route_uri_);
+	server_.check_routes();
+}
+
 net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_session> self) {
 	boost::system::error_code ec;
 	auto token = net::redirect_error(net::deferred, ec);
 	std::string message;
+	message_type::route_auth msg;
 
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);
-		if (!ec) {
+		if (!ec) [[likely]] {
 			// handle message
+			if (msg.ParseFromString(message)) {
+				switch (msg.category()) {
+				case message_type::SERVER_INFO:
+					server_.perm_add(msg.uri(), shared_from_this());
+					break;
+				default:
+					std::println("Debug message:\n{}", msg.DebugString());
+					break;
+				}
+			}
+			else {
+				std::println("parse message failed: {}", message);
+			}
+			msg.Clear();
 		}
 		else {
 			this->fail(ec, "handle_messages");

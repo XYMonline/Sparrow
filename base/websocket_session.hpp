@@ -9,6 +9,8 @@
 #include "../tools/tool_func.hpp"
 #include "../tools/cancellation_signals.hpp"
 
+#include "boost/asio/ssl/error.hpp"
+
 #include <print>
 
 namespace leo {
@@ -57,7 +59,7 @@ public:
 	}
 
 	~websocket_session() {
-		std::println("destroy websocket_session");
+		std::println("destroy {} uuid: {}", derived().server_name(), derived().uuid());
 	}
 
 	std::string uuid() const {
@@ -106,22 +108,31 @@ public:
 		write_lock_.close();
 
 		std::println("shutdown and close socket");
-	}
-
-protected:
-	void fail(boost::system::error_code ec, char const* what, const char* who = "") {
-		if (ec == net::error::operation_aborted || !ec || ec == expr::error::channel_cancelled) {
-			return;
-		}
-		if (ec == websocket::error::closed || ec == net::error::eof || ec == net::error::connection_aborted || ec == net::error::connection_reset) {
-			stop();
-			return;
-		}
-		std::println("{}: {} code: {} {}", what, ec.message(), ec.value(), who);
+		derived().stop_impl();
 	}
 
 	void set_role(ssl::stream_base::handshake_type role) {
 		role_ = role;
+	}
+
+protected:
+	void fail(boost::system::error_code ec, char const* what, const char* who = "") {
+		if (ec == net::error::operation_aborted 
+			|| !ec 
+			|| ec == expr::error::channel_cancelled
+			) {
+			return;
+		}
+		if (ec == websocket::error::closed 
+			|| ec == net::error::eof 
+			|| ec == net::error::connection_aborted 
+			|| ec == net::error::connection_reset
+			|| ec == ssl::error::stream_errors::stream_truncated
+			) {
+			stop();
+			return;
+		}
+		std::println("{} {}: {} code: {} name: {}", who, what, ec.message(), ec.value(), ec.category().name());
 	}
 
 private:
@@ -177,7 +188,7 @@ private:
 		beast::flat_buffer buffer;
 		buffer.reserve(4096);
 		size_t n{ 0 };
-		while (ws_.is_open()) {
+		while (ws_.is_open()) [[likely]] {
 			n = co_await ws_.async_read(buffer, token);// 解析消息
 			if (!ec) {
 				//std::println("message: {}", beast::buffers_to_string(buffer.data()));
@@ -199,7 +210,7 @@ private:
 		auto token = net::redirect_error(net::deferred, ec);
 		std::string message;
 		message.reserve(4096);
-		while (ws_.is_open()) {
+		while (ws_.is_open()) [[likely]] {
 			message = co_await write_channel_.async_receive(token);
 			if (!ec) {
 				co_await write_lock_.async_send(token);

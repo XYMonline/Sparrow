@@ -20,7 +20,7 @@ class auth_server
 	, public std::enable_shared_from_this<auth_server> 
 {
 	wrap_map<std::string, client_ptr>	clients_, client_temp_;
-	wrap_map<std::string, route_ptr>	routes_, route_temp_;
+	wrap_map<std::string, route_ptr>	routes_;
 	load_balancer<route_session, least_connections> route_lb_;
 
 public:
@@ -34,8 +34,10 @@ public:
 	template<typename SessionPtr> void temp_remove_impl(std::string key);
 	template<typename SessionPtr> void perm_remove_impl(std::string key);
 
-private:
-	void connect_route();
+	// connect to route server
+	bool connect_route();
+	// check route list , reconnect if empty
+	void check_routes();
 };
 
 template<typename SessionPtr>
@@ -43,9 +45,6 @@ inline void auth_server::temp_add_impl(SessionPtr ptr) {
 	bool res{ false };
 	if constexpr (std::is_same_v<SessionPtr, client_ptr>) {
 		res = client_temp_.emplace(ptr->uuid(), ptr).second;
-	}
-	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
-		res = route_temp_.emplace(ptr->uuid(), ptr).second;
 	}
 	if (res) {
 		std::println("temp_session: {} join", ptr->uuid());
@@ -67,8 +66,8 @@ inline void auth_server::perm_add_impl(std::string key, SessionPtr ptr) {
 	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
 		if (routes_.emplace(key, ptr).second) {
 			route_lb_.add_server(key, ptr);
-			route_temp_.erase(ptr->uuid());
-			res = true;
+			// dont print route join message
+			return;
 		}
 	}
 	if (res) {
@@ -85,14 +84,8 @@ inline void auth_server::temp_remove_impl(std::string key) {
 	if constexpr (std::is_same_v<SessionPtr, client_ptr>) {
 		res = client_temp_.erase(key);
 	}
-	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
-		res = route_temp_.erase(key);
-	}
 	if (res) {
 		std::println("temp_session: {} leave", key);
-	}
-	else {
-		std::println("temp_session: {} not found", key);
 	}
 }
 
@@ -108,9 +101,6 @@ inline void auth_server::perm_remove_impl(std::string key) {
 	}
 	if (res) {
 		std::println("perm_session: {} leave", key);
-	}
-	else {
-		std::println("perm_session: {} not found", key);
 	}
 }
 

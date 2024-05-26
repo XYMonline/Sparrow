@@ -24,6 +24,7 @@ int main(int argc, char* argv[]) {
         [&](beast::error_code const&, int sig) {
             if (sig == SIGINT) {
                 cancellation.emit(net::cancellation_type::all);
+                server.stop();
             }
             else {
                 ioc.stop();
@@ -51,5 +52,4 @@ int main(int argc, char* argv[]) {
 
     // after all threads are joined, store the cache
     server.store();
-    server.stop();
 }

@@ -58,6 +58,7 @@ public:
 	template<typename Server, typename Session>
 	net::awaitable<void> start_accept(auto self, Server& server, std::unique_ptr<tcp::acceptor>& acceptor, uint16_t listen_port) {
 		boost::system::error_code ec;
+		auto host = config_loader::load_config()["host"].get<std::string>();
 		auto token = net::redirect_error(net::use_awaitable, ec);
 		while ((co_await net::this_coro::cancellation_state).cancelled() == net::cancellation_type::none) {
 			tcp::socket socket = co_await acceptor->async_accept(token);
@@ -70,7 +71,7 @@ public:
 					},
 					server
 				);
-				//session->set_uri(std::format("{}:{}", config_loader::load_config()["host"].get<std::string>(), listen_port));
+				server.temp_add(session);
 				session->start();
 			}
 			else {

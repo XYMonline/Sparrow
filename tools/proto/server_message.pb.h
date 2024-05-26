@@ -407,26 +407,11 @@ class route_business final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kSessionIdFieldNumber = 3,
-    kUriFieldNumber = 4,
+    kUriFieldNumber = 3,
     kCategoryFieldNumber = 1,
     kServerLoadFieldNumber = 2,
   };
-  // string session_id = 3;
-  void clear_session_id();
-  const std::string& session_id() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_session_id(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_session_id();
-  PROTOBUF_NODISCARD std::string* release_session_id();
-  void set_allocated_session_id(std::string* session_id);
-  private:
-  const std::string& _internal_session_id() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_session_id(const std::string& value);
-  std::string* _internal_mutable_session_id();
-  public:
-
-  // string uri = 4;
+  // string uri = 3;
   void clear_uri();
   const std::string& uri() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -466,7 +451,6 @@ class route_business final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr session_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr uri_;
     int category_;
     int32_t server_load_;
@@ -599,6 +583,7 @@ class route_route final :
 
   enum : int {
     kUriFieldNumber = 2,
+    kTokenFieldNumber = 3,
     kCategoryFieldNumber = 1,
   };
   // string uri = 2;
@@ -613,6 +598,20 @@ class route_route final :
   const std::string& _internal_uri() const;
   inline PROTOBUF_ALWAYS_INLINE void _internal_set_uri(const std::string& value);
   std::string* _internal_mutable_uri();
+  public:
+
+  // string token = 3;
+  void clear_token();
+  const std::string& token() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_token(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_token();
+  PROTOBUF_NODISCARD std::string* release_token();
+  void set_allocated_token(std::string* token);
+  private:
+  const std::string& _internal_token() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_token(const std::string& value);
+  std::string* _internal_mutable_token();
   public:
 
   // .message_type.message_category category = 1;
@@ -633,6 +632,7 @@ class route_route final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr uri_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr token_;
     int category_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -834,57 +834,7 @@ inline void route_business::set_server_load(int32_t value) {
   // @@protoc_insertion_point(field_set:message_type.route_business.server_load)
 }
 
-// string session_id = 3;
-inline void route_business::clear_session_id() {
-  _impl_.session_id_.ClearToEmpty();
-}
-inline const std::string& route_business::session_id() const {
-  // @@protoc_insertion_point(field_get:message_type.route_business.session_id)
-  return _internal_session_id();
-}
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE
-void route_business::set_session_id(ArgT0&& arg0, ArgT... args) {
- 
- _impl_.session_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:message_type.route_business.session_id)
-}
-inline std::string* route_business::mutable_session_id() {
-  std::string* _s = _internal_mutable_session_id();
-  // @@protoc_insertion_point(field_mutable:message_type.route_business.session_id)
-  return _s;
-}
-inline const std::string& route_business::_internal_session_id() const {
-  return _impl_.session_id_.Get();
-}
-inline void route_business::_internal_set_session_id(const std::string& value) {
-  
-  _impl_.session_id_.Set(value, GetArenaForAllocation());
-}
-inline std::string* route_business::_internal_mutable_session_id() {
-  
-  return _impl_.session_id_.Mutable(GetArenaForAllocation());
-}
-inline std::string* route_business::release_session_id() {
-  // @@protoc_insertion_point(field_release:message_type.route_business.session_id)
-  return _impl_.session_id_.Release();
-}
-inline void route_business::set_allocated_session_id(std::string* session_id) {
-  if (session_id != nullptr) {
-    
-  } else {
-    
-  }
-  _impl_.session_id_.SetAllocated(session_id, GetArenaForAllocation());
-#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.session_id_.IsDefault()) {
-    _impl_.session_id_.Set("", GetArenaForAllocation());
-  }
-#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:message_type.route_business.session_id)
-}
-
-// string uri = 4;
+// string uri = 3;
 inline void route_business::clear_uri() {
   _impl_.uri_.ClearToEmpty();
 }
@@ -1006,6 +956,56 @@ inline void route_route::set_allocated_uri(std::string* uri) {
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:message_type.route_route.uri)
+}
+
+// string token = 3;
+inline void route_route::clear_token() {
+  _impl_.token_.ClearToEmpty();
+}
+inline const std::string& route_route::token() const {
+  // @@protoc_insertion_point(field_get:message_type.route_route.token)
+  return _internal_token();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void route_route::set_token(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.token_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:message_type.route_route.token)
+}
+inline std::string* route_route::mutable_token() {
+  std::string* _s = _internal_mutable_token();
+  // @@protoc_insertion_point(field_mutable:message_type.route_route.token)
+  return _s;
+}
+inline const std::string& route_route::_internal_token() const {
+  return _impl_.token_.Get();
+}
+inline void route_route::_internal_set_token(const std::string& value) {
+  
+  _impl_.token_.Set(value, GetArenaForAllocation());
+}
+inline std::string* route_route::_internal_mutable_token() {
+  
+  return _impl_.token_.Mutable(GetArenaForAllocation());
+}
+inline std::string* route_route::release_token() {
+  // @@protoc_insertion_point(field_release:message_type.route_route.token)
+  return _impl_.token_.Release();
+}
+inline void route_route::set_allocated_token(std::string* token) {
+  if (token != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.token_.SetAllocated(token, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.token_.IsDefault()) {
+    _impl_.token_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:message_type.route_route.token)
 }
 
 #ifdef __GNUC__

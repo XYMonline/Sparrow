@@ -5,6 +5,8 @@
 #include "business_session.hpp"
 #include "controller_session.hpp"
 
+#include "../tools/proto/server_message.pb.h"
+
 #include <format>
 
 namespace leo {
@@ -29,13 +31,49 @@ void route_server::start_impl() {
 		cache_.signup_service(table_auth_list, std::format("{}:{}", host, auth_port_));
 		std::println("listening autn_server on port: {}", auth_port_);
 	}
-	if (route_port_) {
-		cache_.signup_service(table_route_list, std::format("{}:{}", host, route_port_));
-		std::println("listening route_server on port: {}", route_port_);
-	}
 	if (business_port_) {
 		cache_.signup_service(table_business_list, std::format("{}:{}", host, business_port_));
 		std::println("listening business_server on port: {}", business_port_);
+	}
+	if (route_port_) {
+		cache_.signup_service(table_route_list, std::format("{}:{}", host, route_port_));
+		std::println("listening route_server on port: {}", route_port_);
+		set_uri(std::format("{}:{}", host, route_port_));
+
+		connect_route();
+	}
+}
+
+void route_server::connect_route() {
+	bool find_route{ false };
+	boost::system::error_code ec;
+	auto host = config_loader::load_config()["host"].get<std::string>();
+	auto route_list = cache_.get_services(table_route_list);
+	for (auto& uri : route_list) {
+		if (uri == uri_) {
+			// skip self
+			continue;
+		}
+
+		auto route = make_route_session(uri);
+		if (!route) {
+			std::println("connect_route failed: {} code: {}", ec.message(), ec.value());
+			continue;
+		}
+
+		route->start();
+		std::println("connect to route: {}", uri);
+
+		message_type::route_route msg;
+		msg.set_category(message_type::SERVER_INFO);
+		msg.set_uri(uri_);
+		route->deliver(msg.SerializeAsString());
+
+		find_route = true;
+	}
+
+	if (!find_route) {
+		std::println("no another route server found");
 	}
 }
 
@@ -51,7 +89,7 @@ void route_server::stop_impl() {
 		cache_.remove_service(table_business_list, std::format("{}:{}", host, business_port_));
 	}
 	if (controller_port_) {
-		cache_.remove_service(table_controller_list, std::format("{}:{}", host, business_port_));
+		cache_.remove_service(table_controller_list, std::format("{}:{}", host, controller_port_));
 	}
 
 	// clear all the sessions
@@ -68,6 +106,33 @@ void route_server::stop_impl() {
 }
 
 void route_server::store_impl() {
+}
+
+route_ptr route_server::make_route_session(const std::string& uri) {
+	boost::system::error_code ec;
+	auto [host, port] = uri2host_port(uri);
+	tcp::resolver resolver{ ioc_ };
+	auto endpoints = resolver.resolve(host, port);
+	tcp::socket socket{ ioc_ };
+	net::connect(socket, endpoints, ec);
+	if (ec) {
+		return nullptr;
+	}
+
+	auto route = std::make_shared<route_session>(
+			beast::ssl_stream<beast::tcp_stream>{
+				beast::tcp_stream{ std::move(socket) },
+				ctx_
+			},
+			* this
+		);
+
+	route->set_role(ssl::stream_base::client);
+	route->set_uri(uri_);
+
+	// 将新建的route_session加入发起连接的列表
+	perm_add(uri, route);
+	return route;
 }
 
 }

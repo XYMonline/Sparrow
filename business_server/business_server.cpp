@@ -15,21 +15,39 @@ business_server::business_server(net::io_context& ioc)
 }
 
 void business_server::start_impl() {
+	bool res{ false };
 	auto listener = std::make_shared<leo::listener>(ioc_, ctx_);
-	listener->run<business_server, client_session>(*this, "business_client_port_range");
+	auto port = listener->run<business_server, client_session>(*this, "business_client_port_range");
 
-	connect_route();
+	if (port) {
+		set_uri(std::format("{}:{}", config_loader::load_config()["host"].get<std::string>(), port));
+		std::println("listening on port: {}", port);
+
+		res = connect_route();
+	}
+	else {
+		std::println("business_server::start_impl: failed to start listener");
+	}
+
+	if (!res) {
+		std::println("connect_route failed");
+		stop();
+		std::exit(1);
+	}
 }
 
 void business_server::stop_impl() {
-
+	clients_.clear();
+	client_temp_.clear();
+	route_->stop();
+	route_.reset();
 }
 
 void business_server::store_impl() {
 
 }
 
-void business_server::connect_route() {
+bool business_server::connect_route() {
 	boost::system::error_code ec;
 	auto route_list = cache_.get_services(table_business_list);
 	std::shuffle(route_list.begin(), route_list.end(), std::random_device{});
@@ -50,10 +68,14 @@ void business_server::connect_route() {
 			},
 			*this
 		);
-		route_->set_uri(uri);
+		route_->set_uri(uri_);
 		route_->start();
+		std::println("connect to route: {}", uri);
 		break;
 	}
+
+	// 如果没有找到route_server， 直接退出
+	return route_ != nullptr;
 }
 
 }

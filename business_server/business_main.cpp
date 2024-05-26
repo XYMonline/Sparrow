@@ -16,6 +16,7 @@ int main(int argc, char* argv[]) {
         [&](beast::error_code const&, int sig) {
             if (sig == SIGINT) {
                 cancellation.emit(net::cancellation_type::all);
+                server.stop();
             }
             else {
                 ioc.stop();

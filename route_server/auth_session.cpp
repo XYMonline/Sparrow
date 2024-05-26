@@ -20,20 +20,19 @@ net::awaitable<void> auth_session::handle_messages_impl(std::shared_ptr<auth_ses
 
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);
-		if (!ec) {
+		if (!ec) [[likely]] {
 			// handle message
-			if (msg.ParseFromString(message)) {
-				std::println("{}", msg.DebugString());
+			if (msg.ParseFromString(message)) [[likely]] {
+				//std::println("{}", msg.DebugString());
 				switch (msg.category()) {
 				case message_type::REQUEST_ALLOCATE:
 					std::println("request allocate");
 					break;
 				case message_type::SERVER_INFO:
 					server_.perm_add(msg.uri(), shared_from_this());
+					set_uri(msg.uri());
 					break;
 				}
-
-				msg.Clear();
 			}
 			else {
 				std::println("parse message failed, message: {}", message);
@@ -42,11 +41,17 @@ net::awaitable<void> auth_session::handle_messages_impl(std::shared_ptr<auth_ses
 		else {
 			this->fail(ec, "handle_messages");
 		}
+		msg.Clear();
 	}
 }
 
 void auth_session::start_impl() {
-	server_.temp_add<auth_ptr>(shared_from_this());
+	//server_.temp_add<auth_ptr>(shared_from_this());
+}
+
+void auth_session::stop_impl() {
+	server_.temp_remove<auth_ptr>(uuid());
+	server_.perm_remove<auth_ptr>(uri_);
 }
 
 cancellation_signals& auth_session::signals() {

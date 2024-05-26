@@ -22,8 +22,8 @@ void route_session::start_impl() {
 }
 
 void route_session::stop_impl() {
-	server_.temp_remove<route_session>(uuid());
-	server_.perm_remove<route_session>(uri_);
+	server_.perm_remove<route_ptr>(route_uri_);
+	server_.check_routes();
 }
 
 net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_session> self) {
@@ -34,7 +34,7 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);
-		if (!ec) {
+		if (!ec) [[likely]] {
 			// handle message
 			if (msg.ParseFromString(message)) {
 				switch (msg.category()) {

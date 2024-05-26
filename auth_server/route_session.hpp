@@ -17,12 +17,15 @@ class route_session
 	, public std::enable_shared_from_this<route_session>
 {
 	auth_server& server_;
+	std::string route_uri_;
 
 public:
 	route_session(beast::ssl_stream<beast::tcp_stream> stream, auth_server& server);
 
 	void start_impl();
 	void stop_impl();
+
+	void set_route_uri(std::string_view uri) { route_uri_ = uri; }
 
 	net::awaitable<void> handle_messages_impl(std::shared_ptr<route_session> self);
 

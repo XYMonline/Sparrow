@@ -10,13 +10,13 @@ namespace leo {
 template <typename K, typename V>
 class wrap_map {
 	std::unordered_map<K, V> map_;
-	std::mutex mtx_;
+	mutable std::recursive_mutex mtx_;
 public:
 	wrap_map() = default;
 	wrap_map(const wrap_map&) = delete;
 	wrap_map& operator=(const wrap_map&) = delete;
 
-	auto contains(auto&& key) {
+	auto contains(const K& key) const {
 		std::lock_guard lock(mtx_);
 		return map_.contains(key);
 	}
@@ -39,7 +39,8 @@ public:
 	auto clear() {
 		std::lock_guard lock(mtx_);
 		for (auto& [key, session] : map_) {
-			session->stop();
+			if (session)
+				session->stop();
 		}
 		return map_.clear();
 	}

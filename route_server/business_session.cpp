@@ -13,12 +13,12 @@ business_session::business_session(beast::ssl_stream<beast::tcp_stream> stream, 
 }
 
 void business_session::start_impl() {
-	server_.temp_add(shared_from_this());
+	//server_.temp_add(shared_from_this());
 }
 
 void business_session::stop_impl() {
-	server_.temp_remove<business_session>(uuid());
-	server_.perm_remove<business_session>(uri_);
+	server_.temp_remove<business_ptr>(uuid());
+	server_.perm_remove<business_ptr>(uri_);
 }
 
 net::awaitable<void> business_session::handle_messages_impl(std::shared_ptr<business_session> self) {
@@ -29,15 +29,16 @@ net::awaitable<void> business_session::handle_messages_impl(std::shared_ptr<busi
 
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);
-		if (!ec) {
+		if (!ec) [[likely]] {
 			// handle message
-			if (msg.ParseFromString(message)) {
+			if (msg.ParseFromString(message)) [[likely]] {
 				//std::println("{}", msg.DebugString());
 				switch (msg.category()) {
 				case message_type::UPDATE_LOAD:
 					break;
 				case message_type::SERVER_INFO:
 					server_.perm_add(msg.uri(), shared_from_this());
+					set_uri(msg.uri());
 					break;
 				}
 			}

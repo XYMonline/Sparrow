@@ -20,10 +20,10 @@ route_server::route_server(net::io_context& ioc)
 
 void route_server::start_impl() {
 	auto listener		= std::make_shared<leo::listener>(ioc_, ctx_);
-	//auth_port_			= listener->run<route_server, auth_session>(*this, "route_auth_port_range");
+	auth_port_			= listener->run<route_server, auth_session>(*this, "route_auth_port_range");
 	route_port_			= listener->run<route_server, route_session>(*this, "route_route_port_range");
-	//business_port_		= listener->run<route_server, business_session>(*this, "route_business_port_range");
-	//controller_port_	= listener->run<route_server, controller_session>(*this, "route_controller_port_range");
+	business_port_		= listener->run<route_server, business_session>(*this, "route_business_port_range");
+	controller_port_	= listener->run<route_server, controller_session>(*this, "route_controller_port_range");
 
 	// signup services
 	std::string host{ config_loader::load_config()["host"].get<std::string>() };
@@ -45,6 +45,7 @@ void route_server::start_impl() {
 }
 
 void route_server::connect_route() {
+	bool find_route{ false };
 	boost::system::error_code ec;
 	auto host = config_loader::load_config()["host"].get<std::string>();
 	auto route_list = cache_.get_services(table_route_list);
@@ -60,8 +61,6 @@ void route_server::connect_route() {
 			continue;
 		}
 
-		route->set_role(ssl::stream_base::client);
-		route->set_uri(uri_);
 		route->start();
 		std::println("connect to route: {}", uri);
 
@@ -69,6 +68,12 @@ void route_server::connect_route() {
 		msg.set_category(message_type::SERVER_INFO);
 		msg.set_uri(uri_);
 		route->deliver(msg.SerializeAsString());
+
+		find_route = true;
+	}
+
+	if (!find_route) {
+		std::println("no another route server found");
 	}
 }
 
@@ -90,8 +95,7 @@ void route_server::stop_impl() {
 	// clear all the sessions
 	auth_list_.clear(); 
 	auth_temp_.clear();
-	route_in_.clear();
-	route_out_.clear();
+	route_list_.clear();
 	route_temp_.clear();
 	business_list_.clear(); 
 	business_temp_.clear();
@@ -123,7 +127,11 @@ route_ptr route_server::make_route_session(const std::string& uri) {
 			* this
 		);
 
-	route_out_.emplace(uri, route);
+	route->set_role(ssl::stream_base::client);
+	route->set_uri(uri_);
+
+	// 将新建的route_session加入发起连接的列表
+	perm_add(uri, route);
 	return route;
 }
 

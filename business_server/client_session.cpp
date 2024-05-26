@@ -26,7 +26,7 @@ net::awaitable<void> client_session::handle_messages_impl(std::shared_ptr<client
 
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);
-		if (!ec) {
+		if (!ec) [[likely]] {
 			//handle message
 		}
 		else {

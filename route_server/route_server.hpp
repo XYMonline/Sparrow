@@ -24,7 +24,7 @@ class route_server
 	, public std::enable_shared_from_this<route_server>
 {
 	wrap_map<std::string, auth_ptr>				auth_list_, auth_temp_;
-	wrap_map<std::string, route_ptr>			route_in_, route_out_, route_temp_; // in -> 监听到的连接, out -> 连接到的服务器, temp -> 临时存储
+	wrap_map<std::string, route_ptr>			route_list_, route_temp_; // in -> 监听到的连接, out -> 连接到的服务器, temp -> 临时存储
 	wrap_map<std::string, business_ptr>			business_list_, business_temp_;
 	wrap_map<std::string, controller_ptr>		controller_list_, controller_temp_;
 	load_balancer<business_session, least_connections>	business_lb_;
@@ -43,6 +43,7 @@ public:
 	void stop_impl();
 	void store_impl();
 
+	// 创建一个连接到指定uri的route_session
 	route_ptr make_route_session(const std::string& uri);
 
 	template<typename SessionPtr> void temp_add_impl(SessionPtr ptr);
@@ -84,7 +85,7 @@ inline void route_server::perm_add_impl(std::string key, SessionPtr ptr) { // ke
 		}
 	}
 	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
-		if (route_in_.emplace(key, ptr).second) {
+		if (route_temp_.emplace(key, ptr).second) {
 			//route_temp_.erase(ptr->uuid());
 			res = true;
 		}
@@ -119,8 +120,7 @@ inline void route_server::temp_remove_impl(std::string key) {
 	}
 	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
 		//because the route_session may be join to perm_list at once, so we need to erase both
-		res = true;
-		route_temp_.erase(key);
+		res = route_temp_.erase(key);
 	}
 	else if constexpr (std::is_same_v<SessionPtr, business_ptr>) {
 		res = business_temp_.erase(key);
@@ -132,9 +132,6 @@ inline void route_server::temp_remove_impl(std::string key) {
 	if (res) {
 		std::println("temp_session: {} leave", key);
 	}
-	else {
-		std::println("temp_session: {} not exist", key);
-	}
 }
 
 template<typename SessionPtr>
@@ -144,7 +141,7 @@ inline void route_server::perm_remove_impl(std::string key) {
 		res = auth_list_.erase(key);
 	}
 	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
-		res = route_in_.erase(key) || route_out_.erase(key); // erase both in and out
+		res = route_list_.erase(key);
 	}
 	else if constexpr (std::is_same_v<SessionPtr, business_ptr>) {
 		business_lb_.remove_server(key);

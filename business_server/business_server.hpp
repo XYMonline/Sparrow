@@ -25,7 +25,7 @@ public:
 	void stop_impl();
 	void store_impl();
 
-	void connect_route();
+	bool connect_route();
 
 	template<typename SessionPtr> void temp_add_impl(SessionPtr ptr) {}
 	template<typename SessionPtr> void perm_add_impl(std::string key, SessionPtr ptr) {}

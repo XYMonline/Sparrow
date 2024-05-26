@@ -71,7 +71,7 @@ public:
 					},
 					server
 				);
-				//session->set_uri(std::format("{}:{}", host, listen_port));
+				server.temp_add(session);
 				session->start();
 			}
 			else {

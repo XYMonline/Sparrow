@@ -14,17 +14,17 @@ route_session::route_session(beast::ssl_stream<beast::tcp_stream> stream, route_
 }
 
 void route_session::start_impl() {
-	//if (role_ == ssl::stream_base::client) {
-	//	message_type::route_route msg;
-	//	msg.set_category(message_type::SERVER_INFO);
-	//	msg.set_uri(uri_);
-	//	deliver(msg.SerializeAsString());
-	//}
+	if (role_ == ssl::stream_base::client) {
+		message_type::route_route msg;
+		msg.set_category(message_type::ROUTE_JOIN);
+		msg.set_uri(std::format("{}:{}", config_loader::load_config()["host"].get<std::string>(), server_.auth_port_));
+		deliver(msg.SerializeAsString());
+	}
 }
 
 void route_session::stop_impl() {
 	server_.temp_remove<route_ptr>(uuid());
-	server_.perm_remove<route_ptr>(uri_);
+	server_.perm_remove<route_ptr>(remote_uri_);
 }
 
 net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_session> self) {
@@ -32,6 +32,7 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 	auto token = net::redirect_error(net::deferred, ec);
 	std::string message;
 	message_type::route_route msg;
+	message_type::route_auth auth_msg;
 
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);
@@ -43,22 +44,28 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 				switch (msg.category()) {
 				[[unlikely]] case message_type::SERVER_INFO:
 					server_.perm_add(msg.uri(), shared_from_this());
-					set_uri(msg.uri());
+					set_remote_uri(msg.uri());
 					std::println("connect to route: {}", msg.uri());
+					break;
+				[[unlikeky]] case message_type::ROUTE_JOIN:
+					auth_msg.set_uri(msg.uri());
+					auth_msg.set_category(message_type::ROUTE_JOIN);
+					co_await server_.push_route_info(auth_msg.SerializeAsString());
 					break;
 				[[unlikely]] default:
 					std::println("Debug message:\n{}", msg.DebugString());
 					break;
 				}
+				auth_msg.Clear();
 			}
 			else [[unlikely]] {
 				std::println("parse message failed: {}", message);
 			}
+			msg.Clear();
 		}
 		else {
 			this->fail(ec, "handle_messages");
 		}
-		msg.Clear();
 	}
 }
 

@@ -58,7 +58,7 @@ protected:
 	constexpr static const char* table_route_list{ "route_list" };
 	constexpr static const char* table_auth_list{ "auth_list" };
 	constexpr static const char* table_business_list{ "business_list" };
-	constexpr static const char* table_controller_list{ "controller_list" };
+	constexpr static const char* table_supervisor_list{ "supervisor_list" };
 
 public:
 	server(net::io_context& ioc)

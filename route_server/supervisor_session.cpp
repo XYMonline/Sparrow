@@ -1,31 +1,31 @@
-#include "controller_session.hpp"
+#include "supervisor_session.hpp"
 #include "route_server.hpp"
 
-#include "../tools/proto/controller_message.pb.h"
+#include "../tools/proto/supervisor_message.pb.h"
 
 namespace leo {
 namespace route {
 ;
-controller_session::controller_session(beast::ssl_stream<beast::tcp_stream> stream, route_server& server)
+supervisor_session::supervisor_session(beast::ssl_stream<beast::tcp_stream> stream, route_server& server)
 	: websocket_session(std::move(stream))
 	, server_(server) 
 {
 }
 
-void controller_session::start_impl() {
+void supervisor_session::start_impl() {
 	//server_.temp_add(shared_from_this());
 }
 
-void controller_session::stop_impl() {
-	server_.temp_remove<controller_ptr>(uuid());
-	server_.perm_remove<controller_ptr>(uuid());
+void supervisor_session::stop_impl() {
+	server_.temp_remove<supervisor_ptr>(uuid());
+	server_.perm_remove<supervisor_ptr>(uuid());
 }
 
-net::awaitable<void> controller_session::handle_messages_impl(std::shared_ptr<controller_session> self) {
+net::awaitable<void> supervisor_session::handle_messages_impl(std::shared_ptr<supervisor_session> self) {
 	boost::system::error_code ec;
 	auto token = net::redirect_error(net::deferred, ec);
 	std::string message;
-	message_type::route_controller msg;
+	message_type::route_supervisor msg;
 
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);
@@ -49,7 +49,7 @@ net::awaitable<void> controller_session::handle_messages_impl(std::shared_ptr<co
 	}
 }
 
-cancellation_signals& controller_session::signals() {
+cancellation_signals& supervisor_session::signals() {
 	return server_.signals();
 }
 

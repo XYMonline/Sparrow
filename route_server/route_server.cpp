@@ -3,7 +3,7 @@
 #include "auth_session.hpp"
 #include "route_session.hpp"
 #include "business_session.hpp"
-#include "controller_session.hpp"
+#include "supervisor_session.hpp"
 
 #include "../tools/proto/server_message.pb.h"
 
@@ -15,7 +15,13 @@ namespace route {
 route_server::route_server(net::io_context& ioc)
 	: server{ ioc }
 	, business_lb_{ ioc }
+	, route_info_channel_{ ioc, 1024 }
 {
+	net::co_spawn(
+		ioc, 
+		route_info_distributor(), 
+		net::bind_cancellation_slot(signals().slot(), net::detached)
+	);
 }
 
 void route_server::start_impl() {
@@ -23,7 +29,7 @@ void route_server::start_impl() {
 	auth_port_			= listener->run<route_server, auth_session>(*this, "route_auth_port_range");
 	route_port_			= listener->run<route_server, route_session>(*this, "route_route_port_range");
 	business_port_		= listener->run<route_server, business_session>(*this, "route_business_port_range");
-	controller_port_	= listener->run<route_server, controller_session>(*this, "route_controller_port_range");
+	supervisor_port_	= listener->run<route_server, supervisor_session>(*this, "route_supervisor_port_range");
 
 	// signup services
 	std::string host{ config_loader::load_config()["host"].get<std::string>() };
@@ -88,8 +94,8 @@ void route_server::stop_impl() {
 	if (business_port_) {
 		cache_.remove_service(table_business_list, std::format("{}:{}", host, business_port_));
 	}
-	if (controller_port_) {
-		cache_.remove_service(table_controller_list, std::format("{}:{}", host, controller_port_));
+	if (supervisor_port_) {
+		cache_.remove_service(table_supervisor_list, std::format("{}:{}", host, supervisor_port_));
 	}
 
 	// clear all the sessions
@@ -99,8 +105,8 @@ void route_server::stop_impl() {
 	route_temp_.clear();
 	business_list_.clear(); 
 	business_temp_.clear();
-	controller_list_.clear();
-	controller_temp_.clear();
+	supervisor_list_.clear();
+	supervisor_temp_.clear();
 	business_lb_.stop();
 
 }
@@ -127,12 +133,41 @@ route_ptr route_server::make_route_session(const std::string& uri) {
 			* this
 		);
 
-	route->set_role(ssl::stream_base::client);
-	route->set_uri(uri_);
+	route->as_client();
+	route->set_local_uri(uri_);
 
 	// 将新建的route_session加入发起连接的列表
 	perm_add(uri, route);
 	return route;
+}
+
+net::awaitable<void> route_server::route_info_distributor() {
+	error_code ec;
+	auto token = net::redirect_error(net::deferred, ec);
+	std::string message;
+	message.reserve(1024);
+	while (true) {
+		message = co_await route_info_channel_.async_receive(token);
+		if (ec && ec != net::error::operation_aborted) {
+			std::println("route_info_distributor: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+			break;
+		}
+
+		auto msg = std::make_shared<std::string>(std::move(message));
+		auth_list_.for_each([msg](auto& session) {
+			std::println("auth_list_ session: {}", session->remote_uri());
+			session->deliver(*msg);
+		});
+	}
+}
+
+net::awaitable<void> route_server::push_route_info(std::string message) {
+	error_code ec;
+	auto token = net::redirect_error(net::deferred, ec);
+	co_await route_info_channel_.async_send({}, std::move(message), token);
+	if (ec && ec != net::error::operation_aborted) {
+		std::println("push_route_info: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+	}
 }
 
 }

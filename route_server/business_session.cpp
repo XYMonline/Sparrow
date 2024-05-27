@@ -13,12 +13,12 @@ business_session::business_session(beast::ssl_stream<beast::tcp_stream> stream, 
 }
 
 void business_session::start_impl() {
-	//server_.temp_add(shared_from_this());
+	
 }
 
 void business_session::stop_impl() {
 	server_.temp_remove<business_ptr>(uuid());
-	server_.perm_remove<business_ptr>(uri_);
+	server_.perm_remove<business_ptr>(remote_uri_);
 }
 
 net::awaitable<void> business_session::handle_messages_impl(std::shared_ptr<business_session> self) {
@@ -38,7 +38,7 @@ net::awaitable<void> business_session::handle_messages_impl(std::shared_ptr<busi
 					break;
 				case message_type::SERVER_INFO:
 					server_.perm_add(msg.uri(), shared_from_this());
-					set_uri(msg.uri());
+					set_remote_uri(msg.uri());
 					break;
 				}
 			}

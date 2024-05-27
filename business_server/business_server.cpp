@@ -68,7 +68,7 @@ bool business_server::connect_route() {
 			},
 			*this
 		);
-		route_->set_uri(uri_);
+		route_->set_local_uri(uri_);
 		route_->start();
 		std::println("connect to route: {}", uri);
 		break;

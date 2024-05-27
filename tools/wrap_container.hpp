@@ -54,6 +54,13 @@ public:
 		std::lock_guard lock(mtx_);
 		return map_.size();
 	}
+
+	void for_each(auto&& func) {
+		std::lock_guard lock(mtx_);
+		for (auto& [key, session] : map_) {
+			func(session);
+		}
+	}
 };
 
 }

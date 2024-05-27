@@ -35,7 +35,8 @@ protected:
 	expr::concurrent_channel<void()> write_lock_; // fix, it will be used in writer and handle_messages
 
 	std::string uuid_;
-	std::string uri_;
+	std::string local_uri_;
+	std::string remote_uri_;
 
 	ssl::stream_base::handshake_type role_{ ssl::stream_base::server };
 
@@ -66,8 +67,20 @@ public:
 		return uuid_;
 	}
 
-	void set_uri(const std::string& uri) {
-		uri_ = uri;
+	void set_local_uri(const std::string& uri) {
+		local_uri_ = uri;
+	}
+
+	void set_remote_uri(const std::string& uri) {
+		remote_uri_ = uri;
+	}
+
+	std::string local_uri() const {
+		return local_uri_;
+	}
+
+	std::string remote_uri() const {
+		return remote_uri_;
 	}
 
 	// pass message to the write queue
@@ -111,8 +124,12 @@ public:
 		derived().stop_impl();
 	}
 
-	void set_role(ssl::stream_base::handshake_type role) {
-		role_ = role;
+	void as_server() {
+		role_ = ssl::stream_base::server;
+	}
+
+	void as_client() {
+		role_ = ssl::stream_base::client;
 	}
 
 protected:
@@ -156,7 +173,7 @@ private:
 			}
 		}
 		else {
-			co_await ws_.async_handshake(uri_, "/", token);
+			co_await ws_.async_handshake(local_uri_, "/", token);
 			if (ec) {
 				this->fail(ec, "handshake_connect");
 				co_return;

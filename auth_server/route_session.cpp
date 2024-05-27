@@ -11,18 +11,19 @@ route_session::route_session(beast::ssl_stream<beast::tcp_stream> stream, auth_s
 	: websocket_session{ std::move(stream) }
 	, server_{ server } 
 {
-	set_role(ssl::stream_base::client);
+	//set_role(ssl::stream_base::client);
+	as_client();
 }
 
 void route_session::start_impl() {
 	message_type::route_auth msg;
-	msg.set_uri(uri_);
+	msg.set_uri(local_uri_);
 	msg.set_category(message_type::SERVER_INFO);
 	deliver(msg.SerializeAsString());
 }
 
 void route_session::stop_impl() {
-	server_.perm_remove<route_ptr>(route_uri_);
+	server_.perm_remove<route_ptr>(remote_uri_);
 	server_.check_routes();
 }
 
@@ -38,8 +39,8 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 			// handle message
 			if (msg.ParseFromString(message)) {
 				switch (msg.category()) {
-				case message_type::SERVER_INFO:
-					server_.perm_add(msg.uri(), shared_from_this());
+				case message_type::ROUTE_JOIN:
+					server_.make_route_session(msg.uri());
 					break;
 				default:
 					std::println("Debug message:\n{}", msg.DebugString());

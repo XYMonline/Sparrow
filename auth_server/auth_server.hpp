@@ -38,6 +38,8 @@ public:
 	bool connect_route();
 	// check route list , reconnect if empty
 	void check_routes();
+
+	void make_route_session(const std::string& uri);
 };
 
 template<typename SessionPtr>

@@ -30,7 +30,7 @@ net::awaitable<void> auth_session::handle_messages_impl(std::shared_ptr<auth_ses
 					break;
 				case message_type::SERVER_INFO:
 					server_.perm_add(msg.uri(), shared_from_this());
-					set_uri(msg.uri());
+					set_remote_uri(msg.uri());
 					break;
 				}
 			}
@@ -46,12 +46,12 @@ net::awaitable<void> auth_session::handle_messages_impl(std::shared_ptr<auth_ses
 }
 
 void auth_session::start_impl() {
-	//server_.temp_add<auth_ptr>(shared_from_this());
+	
 }
 
 void auth_session::stop_impl() {
 	server_.temp_remove<auth_ptr>(uuid());
-	server_.perm_remove<auth_ptr>(uri_);
+	server_.perm_remove<auth_ptr>(remote_uri_);
 }
 
 cancellation_signals& auth_session::signals() {

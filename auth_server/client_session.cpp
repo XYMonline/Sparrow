@@ -15,7 +15,7 @@ client_session::client_session(beast::ssl_stream<beast::tcp_stream> stream, auth
 }
 
 void client_session::start_impl() {
-	//server_.temp_add(shared_from_this());
+	
 }
 
 void client_session::stop_impl() {

@@ -39,6 +39,7 @@ protected:
 	std::string remote_uri_;
 
 	ssl::stream_base::handshake_type role_{ ssl::stream_base::server };
+	std::atomic<bool> is_open_{ true };
 
 public:
 	websocket_session(beast::ssl_stream<beast::tcp_stream>&& stream)
@@ -46,7 +47,7 @@ public:
 		, read_channel_{ ws_.get_executor(), 4096 } // a big buffer
 		, write_channel_{ ws_.get_executor(), 4096 }
 		, write_lock_{ ws_.get_executor(), 1 }  // 1 for single writer
-		, uuid_{ uuid_gen()}
+		, uuid_{ uuid_gen() }
 	{
 		ws_.set_option(
 			websocket::stream_base::timeout::suggested(
@@ -110,6 +111,10 @@ public:
 	}
 
 	void stop() {
+		if (this && !is_open_.exchange(false)) {
+			return;
+		}
+
 		boost::system::error_code ec;
 		ws_.close(websocket::close_code::normal, ec);
 		read_channel_.cancel();

@@ -50,6 +50,7 @@ void business_server::store_impl() {
 }
 
 bool business_server::connect_route() {
+	route_.reset();
 	boost::system::error_code ec;
 	auto route_list = cache_.get_services(table_business_list);
 	std::shuffle(route_list.begin(), route_list.end(), std::random_device{});

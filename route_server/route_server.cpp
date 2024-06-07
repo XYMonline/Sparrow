@@ -6,6 +6,7 @@
 #include "supervisor_session.hpp"
 
 #include "../tools/proto/server_message.pb.h"
+#include "../tools/proto/supervisor_message.pb.h"
 
 #include <format>
 
@@ -15,11 +16,25 @@ namespace route {
 route_server::route_server(net::io_context& ioc)
 	: server{ ioc }
 	, business_lb_{ ioc }
-	, route_info_channel_{ ioc, 1024 }
+	, route_info_channel_{ ioc, 4096 }
+	, node_info_to_supervisor_{ ioc, 4096 }
+	, node_info_to_route_{ ioc, 4096 }
 {
 	net::co_spawn(
 		ioc, 
 		route_info_distributor(), 
+		net::bind_cancellation_slot(signals().slot(), net::detached)
+	);
+
+	net::co_spawn(
+		ioc,
+		node_info_distributor(),
+		net::bind_cancellation_slot(signals().slot(), net::detached)
+	);
+
+	net::co_spawn(
+		ioc,
+		load_updater_impl(),
 		net::bind_cancellation_slot(signals().slot(), net::detached)
 	);
 }
@@ -148,7 +163,7 @@ net::awaitable<void> route_server::route_info_distributor() {
 	message.reserve(1024);
 	while (true) {
 		message = co_await route_info_channel_.async_receive(token);
-		if (ec && ec != net::error::operation_aborted) {
+		if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
 			std::println("route_info_distributor: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
 			break;
 		}
@@ -161,12 +176,117 @@ net::awaitable<void> route_server::route_info_distributor() {
 	}
 }
 
-net::awaitable<void> route_server::push_route_info(std::string message) {
+net::awaitable<void> route_server::push_route_info(const std::string& message) {
 	error_code ec;
 	auto token = net::redirect_error(net::deferred, ec);
-	co_await route_info_channel_.async_send({}, std::move(message), token);
+	co_await route_info_channel_.async_send({}, message, token);
 	if (ec && ec != net::error::operation_aborted) {
 		std::println("push_route_info: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+	}
+}
+
+net::awaitable<void> route_server::node_info_distributor() {
+	error_code ec;
+	net::steady_timer timer{ ioc_ };
+	std::atomic<bool> timer_flag{ true };
+	auto token = net::redirect_error(net::deferred, ec);
+	auto interval = std::chrono::seconds(config_loader::load_config()["route_update_interval"].get<int>());
+	std::string buffer;
+	message_type::route_route msg_route;
+	buffer.reserve(1024);
+	msg_route.set_category(message_type::UPDATE_LOAD);
+
+	while (true) {
+		timer.expires_after(interval);
+		timer.async_wait([&timer_flag, this](const error_code& ec) {
+			if (!ec) {
+				timer_flag = false;
+				node_info_to_route_.cancel();
+			}
+		});
+		while (timer_flag) {
+			buffer = co_await node_info_to_supervisor_.async_receive(token);
+			if (!ec) {
+				msg_route.add_load_list(std::move(buffer));
+			}
+			else if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
+				std::println("node_info_distributor: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+				break;
+			}
+		}
+
+		auto shared_msg = std::make_shared<std::string>(msg_route.SerializeAsString());
+		route_list_.for_each([shared_msg](auto& session) {
+			std::println("roiute_list_ session: {}", session->remote_uri());
+			session->deliver(*shared_msg);
+			});
+
+		co_await timer.async_wait(token);
+		if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
+			std::println("route_server::node_info_distributor: {}", ec.message());
+			break;
+		}
+
+		msg_route.clear_load_list();
+		timer_flag = true;
+	}
+}
+
+net::awaitable<void> route_server::push_node_info(const std::string& message, bool to_route) {
+	error_code ec;
+	auto token = net::redirect_error(net::deferred, ec);
+	if (to_route) {
+		co_await node_info_to_route_.async_send({}, message, token);
+		if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
+			std::println("push_node_info: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+		}
+	}
+	co_await node_info_to_supervisor_.async_send({}, message, token);
+	if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
+		std::println("push_node_info: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+	}
+}
+
+net::awaitable<void> route_server::load_updater_impl() {
+	error_code ec;
+	net::steady_timer timer{ ioc_ };
+	std::atomic<bool> timer_flag{ true };
+	auto token = net::redirect_error(net::use_awaitable, ec);
+	auto interval = std::chrono::seconds(config_loader::load_config()["route_update_interval"].get<int>());
+	supr::route_supervisor msg_supr;
+	std::string buffer;
+	buffer.reserve(1024);
+	msg_supr.set_category(supr::SERVER_LIST);
+
+	while (true) {
+		timer.expires_after(interval);
+		timer.async_wait([&timer_flag, this](const error_code& ec) {
+			if (!ec) {
+				timer_flag = false;
+				node_info_to_supervisor_.cancel();
+			}
+		});
+		while (timer_flag) {
+			buffer = co_await node_info_to_supervisor_.async_receive(token);
+			if (!ec) {
+				msg_supr.add_load_list(std::move(buffer));
+			}
+		}
+
+		auto shared_msg = std::make_shared<std::string>(msg_supr.SerializeAsString());
+		supervisor_list_.for_each([shared_msg](auto& session) {
+			std::println("supervisor_list_ session: {}", session->remote_uri());
+			session->deliver(*shared_msg);
+			});
+
+		co_await timer.async_wait(token);
+		if (ec && ec != net::error::operation_aborted) {
+			std::println("route_server::load_updater_impl: {}", ec.message());
+			break;
+		}
+
+		msg_supr.clear_load_list();
+		timer_flag = true;
 	}
 }
 

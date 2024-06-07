@@ -16,13 +16,20 @@ bool storage_service::init(std::string_view host, std::string_view user, std::st
 		auto result = resolver.resolve(host, std::to_string(port));
 		auto endpoint = *result.begin();
 		auto params = mysql::handshake_params{ user, password, db };
+		std::shared_ptr<connection_type> conn;
+		bool res{ false };
 
 		for (; count < connection_num_; ) {
-			auto conn = std::make_shared<connection_type>(connection_pool_.get_executor(), ctx_);
-			conn->connect(endpoint, params);
-			bool res = connection_pool_.try_send(error_code{}, conn);
+			if (!conn) {
+				conn = std::make_shared<connection_type>(connection_pool_.get_executor(), ctx_);
+				conn->connect(endpoint, params);
+			}
+			else {
+				res = connection_pool_.try_send(error_code{}, conn);
+			}
 			if (res) {
 				++count;
+				conn.reset();
 			}
 		}
 	}
@@ -30,6 +37,6 @@ bool storage_service::init(std::string_view host, std::string_view user, std::st
 		std::println(" error: storage_service::init: {}", e.what());
 		return false;
 	}
-	return count == connection_num_;
+	return true;
 }
 }

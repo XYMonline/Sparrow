@@ -12,22 +12,38 @@ enum message_category {
     SERVER_INFO = 6; // 服务器信息(uri)
 }
 
+enum server_type {
+	ROUTE_SERVER = 0; // 路由服务器
+	BUSINESS_SERVER = 1; // 业务服务器
+    AUTH_SERVER = 2; // 验证服务器
+}
+
+message load_type {
+    server_type type = 1; // 服务器类型
+    int32 session_increase = 2; // 会话数量变化
+    double cpu_usage = 3; // CPU使用率
+    uint64 memory_free = 4; // 内存剩余
+    uint64 memory_total = 5; // 内存总量
+    string address = 6; // 服务器地址
+}
+
 message route_auth {
     message_category category = 1; // 消息类别
-    int32 server_load = 2; // 路由服务器负载
+    load_type server_load = 2; // 路由服务器负载
     string token = 3;
     string uri = 4; // 服务器地址
 }
 
 message route_business {
     message_category category = 1; // 消息类别
-    int32 server_load = 2; // 消息服务器负载
+    load_type server_load = 2; // 消息服务器负载
     string uri = 3; // 消息服务器地址
 }
 
 message route_route {
     message_category category = 1; // 消息类别
-    string uri = 2; // 路由服务器地址
-    string token = 3; // 用于是否是验证主动连接的服务器连接到自己
+    repeated string load_list = 2; // 以字节串保存的load_type列表
+    string uri = 3; // 路由服务器地址
+    string token = 4; // 用于是否是验证主动连接的服务器连接到自己
 }
 

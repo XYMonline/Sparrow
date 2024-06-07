@@ -6,6 +6,8 @@
 #include "../tools/wrap_container.hpp"
 #include "../tools/load_blancer.hpp"
 
+#include <atomic>
+
 namespace leo {
 namespace route {
 ;
@@ -29,14 +31,19 @@ class route_server
 	wrap_map<std::string, supervisor_ptr>		supervisor_list_, supervisor_temp_;
 	load_balancer<business_session, least_connections>	business_lb_;
 
-	expr::concurrent_channel<void(error_code, std::string)> route_info_channel_;
+	expr::concurrent_channel<void(error_code, std::string)> route_info_channel_; // 用于传递新加入的route_server的信息
+	expr::concurrent_channel<void(error_code, std::string)> node_info_to_supervisor_; // 用于向监控管理器传递节点传递的更新信息
+	expr::concurrent_channel<void(error_code, std::string)> node_info_to_route_; // 用于向其他route_server传递本节点持有的auth_server/business_server的更新信息
 
 	uint16_t auth_port_{ 0 };
 	uint16_t route_port_{ 0 };
 	uint16_t business_port_{ 0 };
 	uint16_t supervisor_port_{ 0 };
 
-	// 暂时用于访问auth_port_, route_port_, business_port_, supervisor_port_
+	std::atomic<int64_t> session_total_{ 0 }; // 用于统计所有会话的数量
+	std::atomic<int64_t> node_total_{ 0 }; // 用于统计所有节点的数量
+
+	// 暂时用于访问auth_port_, route_port_, business_port_, supervisor_port_, session_total_, node_total_
 	friend class route_session;
 
 private:
@@ -48,11 +55,22 @@ public:
 	void stop_impl();
 	void store_impl();
 
+	void session_total_inc(int64_t n) { session_total_ += n; }
+
 	// 创建一个连接到指定uri的route_session
 	route_ptr make_route_session(const std::string& uri);
 
-	net::awaitable<void> route_info_distributor();
-	net::awaitable<void> push_route_info(std::string message);
+	// 向所有auth_server发送新的route_server节点信息
+	net::awaitable<void> route_info_distributor(); 
+
+	// 将信息推送到route_info_channel_
+	net::awaitable<void> push_route_info(const std::string& message);
+
+	// 向其他route_server发送本节点持有的auth_server/business_server的信息
+	net::awaitable<void> node_info_distributor();
+
+	net::awaitable<void> push_node_info(const std::string& message, bool to_route = true); // 推送到node_info_to_supervisor_, to_route = true -> 同时推送到node_info_to_route_, 
+	net::awaitable<void> load_updater_impl();
 
 	template<typename SessionPtr> void temp_add_impl(SessionPtr ptr);
 	template<typename SessionPtr> void perm_add_impl(std::string key, SessionPtr ptr);
@@ -88,32 +106,29 @@ inline void route_server::perm_add_impl(std::string key, SessionPtr ptr) { // ke
 	bool res{ false };
 	if constexpr (std::is_same_v<SessionPtr, auth_ptr>) {
 		if (auth_list_.emplace(key, ptr).second) {
-			//auth_temp_.erase(ptr->uuid());
 			res = true;
 		}
 	}
 	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
 		if (route_temp_.emplace(key, ptr).second) {
-			//route_temp_.erase(ptr->uuid());
 			res = true;
 		}
 	}
 	else if constexpr (std::is_same_v<SessionPtr, business_ptr>) {
 		if (business_list_.emplace(key, ptr).second) {
 			business_lb_.add_server(key, ptr);
-			//business_temp_.erase(ptr->uuid());
 			res = true;
 		}
 	}
 	else if constexpr (std::is_same_v<SessionPtr, supervisor_ptr>) {
 		if (supervisor_list_.emplace(key, ptr).second) {
-			//supervisor_temp_.erase(ptr->uuid());
 			res = true;
 		}
 	}
 	if (res) {
 		std::println("perm_session: {} join, uuid: {}", key, ptr->uuid());
 		this->temp_remove<SessionPtr>(ptr->uuid());
+		++node_total_;
 	}
 	else {
 		std::println("perm_session: {} already exist", key);
@@ -160,6 +175,7 @@ inline void route_server::perm_remove_impl(std::string key) {
 	}
 	if (res) {
 		std::println("perm_session: {} leave", key);
+		--node_total_;
 	}
 }
 

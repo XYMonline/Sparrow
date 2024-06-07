@@ -3,6 +3,8 @@
 #include "route_session.hpp"
 #include "client_session.hpp"
 
+#include "../tools/proto/server_message.pb.h"
+
 #include <algorithm>
 #include <random>
 
@@ -76,6 +78,39 @@ bool business_server::connect_route() {
 
 	// 如果没有找到route_server， 直接退出
 	return route_ != nullptr;
+}
+
+net::awaitable<void> business_server::load_updater_impl() {
+	error_code ec;
+	auto token = net::redirect_error(net::use_awaitable, ec);
+	net::steady_timer timer{ ioc_ };
+	auto interval = std::chrono::seconds(config_loader::load_config()["business_update_interval"].get<int>());
+	int session_increase{ 0 };
+	message_type::load_type load_info;
+	message_type::route_business msg;
+
+	msg.set_category(message_type::UPDATE_LOAD);
+	load_info.set_address(uri());
+	load_info.set_type(message_type::AUTH_SERVER);
+	load_info.set_memory_total(memory_total());
+
+	while (true) {
+		session_increase = (int)clients_.size() - session_increase;
+		load_info.set_session_increase(session_increase);
+		load_info.set_cpu_usage(cpu_usage());
+		load_info.set_memory_free(memory_free());
+
+		//msg.set_allocated_server_load(&load_info);
+		msg.mutable_server_load()->CopyFrom(load_info);
+		route_->deliver(msg.SerializeAsString());
+
+		timer.expires_after(interval);
+		co_await timer.async_wait(token);
+		if (ec && ec != net::error::operation_aborted) {
+			std::println("auth_server::load_updater_impl: {}", ec.message());
+			break;
+		}
+	}
 }
 
 }

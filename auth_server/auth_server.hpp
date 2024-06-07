@@ -34,6 +34,8 @@ public:
 	template<typename SessionPtr> void temp_remove_impl(std::string key);
 	template<typename SessionPtr> void perm_remove_impl(std::string key);
 
+	net::awaitable<void> load_updater_impl();
+
 	// connect to route server
 	bool connect_route();
 	// check route list , reconnect if empty

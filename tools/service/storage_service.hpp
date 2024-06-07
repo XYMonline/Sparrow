@@ -23,12 +23,13 @@ class storage_service {
 public:
 	storage_service(net::io_context& ioc, ssl::context& ctx, size_t connection_num = 8ull);
 	~storage_service() {
-		connection_pool_.cancel();
+		stop();
 	}
 
 	bool init(std::string_view host, std::string_view user, std::string_view password, std::string_view db, std::uint16_t port = 3306);
 	void stop() {
 		connection_pool_.cancel();
+		connection_pool_.close();
 	}
 
 };

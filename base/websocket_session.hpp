@@ -57,6 +57,9 @@ public:
 				res.set(http::field::server, // 子类重新设置服务器名称
 				derived().server_name());
 			}));
+
+		// important, set binary mode, send ptobobuf message as binary
+		ws_.binary(true);
 	}
 
 	~websocket_session() {
@@ -145,6 +148,8 @@ protected:
 			|| ec == net::error::connection_aborted 
 			|| ec == net::error::connection_reset
 			|| ec == ssl::error::stream_errors::stream_truncated
+			|| ec == expr::channel_errc::channel_closed
+			|| ec.value() == 167772451 // ssl::error::stream_truncated
 			) {
 			stop();
 			return;
@@ -205,7 +210,7 @@ private:
 		beast::flat_buffer buffer;
 		buffer.reserve(4096);
 		size_t n{ 0 };
-		while (ws_.is_open()) [[likely]] {
+		while (ws_.is_open()) {
 			n = co_await ws_.async_read(buffer, token);// 解析消息
 			if (!ec) {
 				//std::println("message: {}", beast::buffers_to_string(buffer.data()));
@@ -227,7 +232,7 @@ private:
 		auto token = net::redirect_error(net::deferred, ec);
 		std::string message;
 		message.reserve(4096);
-		while (ws_.is_open()) [[likely]] {
+		while (ws_.is_open()) {
 			message = co_await write_channel_.async_receive(token);
 			if (!ec) {
 				co_await write_lock_.async_send(token);

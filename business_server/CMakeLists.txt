@@ -23,4 +23,4 @@ add_executable (${PROJECT_NAME} "business_main.cpp" ${SOURCE_FILES} ${BASE_SRC} 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE redis++::redis++ OpenSSL::SSL  protobuf::libprotobuf spdlog::spdlog)
+target_link_libraries(${PROJECT_NAME} PRIVATE common_libraries)

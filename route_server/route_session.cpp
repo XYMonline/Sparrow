@@ -42,12 +42,20 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 				auto& _token = msg.token();
 				auto& _uri = msg.uri();
 				switch (msg.category()) {
+				[[likely]] case message_type::UPDATE_LOAD:
+				{
+					auto& load_list = msg.load_list();
+					for (auto& load : load_list) {
+						server_.push_node_info(load, false); // to_route = false, 将消息推送到supervisor
+					}
+				}
+					break;
 				[[unlikely]] case message_type::SERVER_INFO:
 					server_.perm_add(msg.uri(), shared_from_this());
 					set_remote_uri(msg.uri());
 					std::println("connect to route: {}", msg.uri());
 					break;
-				[[unlikeky]] case message_type::ROUTE_JOIN:
+				case message_type::ROUTE_JOIN:
 					auth_msg.set_uri(msg.uri());
 					auth_msg.set_category(message_type::ROUTE_JOIN);
 					co_await server_.push_route_info(auth_msg.SerializeAsString());

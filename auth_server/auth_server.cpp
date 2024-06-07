@@ -49,6 +49,45 @@ void auth_server::store_impl() {
 
 }
 
+net::awaitable<void> auth_server::load_updater_impl() {
+	error_code ec;
+	auto token = net::redirect_error(net::use_awaitable, ec);
+	net::steady_timer timer{ ioc_ };
+	auto interval = std::chrono::seconds(config_loader::load_config()["auth_update_interval"].get<int>());
+	int session_increase{ 0 };
+	message_type::load_type load_info;
+	message_type::route_auth msg;
+
+	msg.set_category(message_type::UPDATE_LOAD);
+	load_info.set_address(uri());
+	load_info.set_type(message_type::AUTH_SERVER);
+	load_info.set_memory_total(memory_total());
+
+	while (true) {
+		timer.expires_after(interval);
+
+		session_increase = clients_.size() - session_increase;
+		load_info.set_session_increase(session_increase);
+		load_info.set_cpu_usage(cpu_usage());
+		load_info.set_memory_free(memory_free());
+
+		//msg.set_allocated_server_load(&load_info);
+		msg.mutable_server_load()->CopyFrom(load_info);
+
+		routes_.for_each([m = msg.SerializeAsString()](const auto& ptr) {
+			ptr->deliver(m);
+		});
+
+		msg.clear_server_load();
+
+		co_await timer.async_wait(token);
+		if (ec && ec != net::error::operation_aborted) {
+			std::println("auth_server::load_updater_impl: {}", ec.message());
+			break;
+		}
+	}
+}
+
 bool auth_server::connect_route() {
 	auto host = config_loader::load_config()["host"].get<std::string>();
 	auto route_list = cache_.get_services(table_auth_list);

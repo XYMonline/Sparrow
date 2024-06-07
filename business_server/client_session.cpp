@@ -2,6 +2,7 @@
 #include "business_server.hpp"
 
 #include "../tools/proto/client_message.pb.h"
+#include "../tools/proto/server_message.pb.h"
 
 namespace leo {
 namespace business {
@@ -22,10 +23,10 @@ void client_session::stop_impl() {
 net::awaitable<void> client_session::handle_messages_impl(std::shared_ptr<client_session> self) {
 	boost::system::error_code ec;
 	auto token = net::redirect_error(net::deferred, ec);
-	std::string message;
+	std::string buffer;
 
 	while (ws_.is_open()) {
-		message = co_await read_channel_.async_receive(token);
+		buffer = co_await read_channel_.async_receive(token);
 		if (!ec) [[likely]] {
 			//handle message
 		}

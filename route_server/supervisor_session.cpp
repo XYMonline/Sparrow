@@ -25,7 +25,7 @@ net::awaitable<void> supervisor_session::handle_messages_impl(std::shared_ptr<su
 	boost::system::error_code ec;
 	auto token = net::redirect_error(net::deferred, ec);
 	std::string message;
-	message_type::route_supervisor msg;
+	supr::route_supervisor msg;
 
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);

@@ -58,8 +58,15 @@ public:
 	void for_each(auto&& func) {
 		std::lock_guard lock(mtx_);
 		for (auto& [key, session] : map_) {
-			func(session);
+			if (session) {
+				func(session);
+			}
 		}
+	}
+
+	auto operator[](auto&& key) {
+		std::lock_guard lock(mtx_);
+		return map_[key];
 	}
 };
 

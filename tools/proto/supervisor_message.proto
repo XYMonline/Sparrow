@@ -1,26 +1,28 @@
 syntax = "proto3";
 
-package message_type;
+package supr;
 
 enum route_supervisor_category {
 	SERVER_LIST = 0; // 服务器列表
 	FORCE_OFFLINE = 1; // 强制下线
 }
 
-enum server_category {
-	AUTH = 0; // 认证服务器
-	ROUTE = 1; // 路由服务器
-	BUSINESS = 2; // 业务服务器
+enum server_type {
+	ROUTE_SERVER = 0; // 路由服务器
+	BUSINESS_SERVER = 1; // 业务服务器
+    AUTH_SERVER = 2; // 验证服务器
 }
 
-message srever_info {
-	server_category category = 1;
-	string uri = 2;
-	int32 load = 3;
-	string master_uri = 4; // business_server 的 master_uri 为 route_server 的 uri
+message load_type {
+    server_type type = 1; // 服务器类型
+    int32 session_increase = 2; // 会话数量变化
+    double cpu_usage = 3; // CPU使用率
+    uint64 memory_free = 4; // 内存剩余
+    uint64 memory_total = 5; // 内存总量
+    string address = 6; // 服务器地址
 }
 
 message route_supervisor {
 	route_supervisor_category category = 1;
-	repeated srever_info server_list = 2;
+	repeated string load_list = 2; // 以字节串保存的load_type
 }

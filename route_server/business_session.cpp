@@ -32,11 +32,18 @@ net::awaitable<void> business_session::handle_messages_impl(std::shared_ptr<busi
 		if (!ec) [[likely]] {
 			// handle message
 			if (msg.ParseFromString(message)) [[likely]] {
-				//std::println("{}", msg.DebugString());
+				std::println("{}", msg.DebugString());
 				switch (msg.category()) {
 				case message_type::UPDATE_LOAD:
+				{
+					auto& load = msg.server_load();
+					server_.session_total_inc(load.session_increase());
+
+					// 同时将新的节点信息推送到route_info_channel_和node_info_channel_，用于在集群中传递新的节点信息和发送到监控管理器
+					server_.push_node_info(load.SerializeAsString());
+				}
 					break;
-				case message_type::SERVER_INFO:
+				[[unlikely]] case message_type::SERVER_INFO:
 					server_.perm_add(msg.uri(), shared_from_this());
 					set_remote_uri(msg.uri());
 					break;

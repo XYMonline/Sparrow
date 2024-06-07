@@ -9,6 +9,7 @@
 #include "../tools/service/storage_service.hpp"
 #include "../tools/config_loader.hpp"
 #include "../tools/server_certificate.hpp"
+#include "../tools/sysinfo/sysinfo.hpp"
 
 #include <print>
 
@@ -40,6 +41,7 @@ connect_config connect_config_init();
  * - void perm_add_impl(std::string key, SessionPtr ptr)
  * - void temp_remove_impl(std::string key)
  * - void perm_remove_impl(std::string key)
+ * - net::awaitable<void> load_updater_impl()
  */
 template<typename Derived>
 class server {
@@ -74,11 +76,9 @@ public:
 
 	void start() {
 		error_code ec;
-		auto& conf = config_loader::load_config();
 		auto [db_host, db_name, db_user, db_password, cache_user, cache_password, cert_path, key_path, dh_path, db_port, options] = connect_config_init();
 		
 		bool connect_cache = cache_.init(options);
-
 		bool connect_storage = storage_.init(
 			db_host,
 			db_user,
@@ -92,7 +92,7 @@ public:
 			return;
 		}
 
-		// 先连接到数据库和缓存，再加载证书
+		// 如果在测试中，先连接到数据库和缓存，再加载证书，否则连接到数据库时会出现异常
 		leo::load_server_certificate(
 			ctx_,
 			ec,
@@ -102,13 +102,16 @@ public:
 		);
 
 		derived().start_impl();
+		net::co_spawn(
+			ioc_,
+			load_updater(),
+			net::bind_cancellation_slot(signals().slot(), net::detached)
+		);
 	}
 
-	void stop() { 
-		derived().stop_impl(); 
-	}
-
+	void stop() { derived().stop_impl(); }
 	void store() { derived().store_impl(); }
+	net::awaitable<void> load_updater() { return derived().load_updater_impl(); }
 
 	storage_service& storage() { return storage_; }
 	cache_service& cache() { return cache_; }

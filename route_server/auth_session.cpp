@@ -59,7 +59,8 @@ void auth_session::start_impl() {
 }
 
 void auth_session::stop_impl() {
-	server_.temp_remove<auth_ptr>(uuid());
+	//auto self = shared_from_this();
+	server_.temp_remove<auth_ptr>(uuid_);
 	server_.perm_remove<auth_ptr>(remote_uri_);
 }
 

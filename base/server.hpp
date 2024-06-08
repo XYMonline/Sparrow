@@ -11,6 +11,8 @@
 #include "../tools/server_certificate.hpp"
 #include "../tools/sysinfo/sysinfo.hpp"
 
+#include <parallel_hashmap/phmap.h>
+
 #include <print>
 
 namespace leo {

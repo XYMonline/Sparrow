@@ -23,7 +23,8 @@ void route_session::start_impl() {
 }
 
 void route_session::stop_impl() {
-	server_.temp_remove<route_ptr>(uuid());
+	//auto self = shared_from_this();
+	server_.temp_remove<route_ptr>(uuid_);
 	server_.perm_remove<route_ptr>(remote_uri_);
 }
 

@@ -74,9 +74,13 @@ net::awaitable<void> auth_server::load_updater_impl() {
 		//msg.set_allocated_server_load(&load_info);
 		msg.mutable_server_load()->CopyFrom(load_info);
 
-		routes_.for_each([m = msg.SerializeAsString()](const auto& ptr) {
-			ptr->deliver(m);
-		});
+		//routes_.for_each([m = msg.SerializeAsString()](const auto& ptr) {
+		//	ptr->deliver(m);
+		//});
+		auto shared_msg = msg.SerializeAsString();
+		for (auto& [uri, ptr] : routes_) {
+			ptr->deliver(shared_msg);
+		}
 
 		msg.clear_server_load();
 

@@ -17,7 +17,8 @@ void business_session::start_impl() {
 }
 
 void business_session::stop_impl() {
-	server_.temp_remove<business_ptr>(uuid());
+	//auto self = shared_from_this();
+	server_.temp_remove<business_ptr>(uuid_);
 	server_.perm_remove<business_ptr>(remote_uri_);
 }
 

@@ -25,11 +25,11 @@ sudo apt-get install git cmake curl zip unzip tar pkg-config
 ### 2.2. 安装依赖
 `Windows`
 ```shell
-./vcpkg install openssl:x64-windows boost-uuid:x64-windows boost-asio:x64-windows nlohmann-json:x64-windows boost-mysql:x64-windows protobuf:x64-windows redis-plus-plus:x64-windows spdlog:x64-windows boost-beast:x64-windows
+./vcpkg install openssl:x64-windows boost-uuid:x64-windows boost-asio:x64-windows nlohmann-json:x64-windows boost-mysql:x64-windows protobuf:x64-windows redis-plus-plus:x64-windows spdlog:x64-windows boost-beast:x64-windows parallel-hashmap:x64-windows
 ```
 `Linux`
 ```bash
-./vcpkg install openssl:x64-linux boost-uuid:x64-linux boost-asio:x64-linux nlohmann-json:x64-linux boost-mysql:x64-linux protobuf:x64-linux redis-plus-plus:x64-linux spdlog:x64-linuxlinux boost-beast:x64-linux
+./vcpkg install openssl:x64-linux boost-uuid:x64-linux boost-asio:x64-linux nlohmann-json:x64-linux boost-mysql:x64-linux protobuf:x64-linux redis-plus-plus:x64-linux spdlog:x64-linuxlinux boost-beast:x64-linux parallel-hashmap:x64-linux
 ```
 
 ### 2.3. 构建运行

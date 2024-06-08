@@ -168,11 +168,15 @@ net::awaitable<void> route_server::route_info_distributor() {
 			break;
 		}
 
-		auto msg = std::make_shared<std::string>(std::move(message));
-		auth_list_.for_each([msg](auto& session) {
+		//auto msg = std::make_shared<std::string>(std::move(message));
+		//auth_list_.for_each([msg](auto& session) {
+		//	std::println("auth_list_ session: {}", session->remote_uri());
+		//	session->deliver(*msg);
+		//});
+		for (auto& [key, session] : auth_list_) {
 			std::println("auth_list_ session: {}", session->remote_uri());
-			session->deliver(*msg);
-		});
+			session->deliver(message);
+		}
 	}
 }
 
@@ -215,11 +219,16 @@ net::awaitable<void> route_server::node_info_distributor() {
 			}
 		}
 
-		auto shared_msg = std::make_shared<std::string>(msg_route.SerializeAsString());
-		route_list_.for_each([shared_msg](auto& session) {
+		//auto shared_msg = std::make_shared<std::string>(msg_route.SerializeAsString());
+		//route_list_.for_each([shared_msg](auto& session) {
+		//	std::println("roiute_list_ session: {}", session->remote_uri());
+		//	session->deliver(*shared_msg);
+		//	});
+		auto shared_msg = msg_route.SerializeAsString();
+		for (auto& [key, session] : route_list_) {
 			std::println("roiute_list_ session: {}", session->remote_uri());
-			session->deliver(*shared_msg);
-			});
+			session->deliver(shared_msg);
+		}
 
 		co_await timer.async_wait(token);
 		if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
@@ -273,11 +282,16 @@ net::awaitable<void> route_server::load_updater_impl() {
 			}
 		}
 
-		auto shared_msg = std::make_shared<std::string>(msg_supr.SerializeAsString());
-		supervisor_list_.for_each([shared_msg](auto& session) {
+		//auto shared_msg = std::make_shared<std::string>(msg_supr.SerializeAsString());
+		//supervisor_list_.for_each([shared_msg](auto& session) {
+		//	std::println("supervisor_list_ session: {}", session->remote_uri());
+		//	session->deliver(*shared_msg);
+		//	});
+		auto shared_msg = msg_supr.SerializeAsString();
+		for (auto& [key, session] : supervisor_list_) {
 			std::println("supervisor_list_ session: {}", session->remote_uri());
-			session->deliver(*shared_msg);
-			});
+			session->deliver(shared_msg);
+		}
 
 		co_await timer.async_wait(token);
 		if (ec && ec != net::error::operation_aborted) {

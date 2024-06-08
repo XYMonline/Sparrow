@@ -3,7 +3,6 @@
 #define SPARROW_ROUTE_SERVER_HPP
 
 #include "../base/server.hpp"
-#include "../tools/wrap_container.hpp"
 #include "../tools/load_blancer.hpp"
 
 #include <atomic>
@@ -25,10 +24,10 @@ class route_server
 	: public server<route_server>
 	, public std::enable_shared_from_this<route_server>
 {
-	wrap_map<std::string, auth_ptr>				auth_list_, auth_temp_;
-	wrap_map<std::string, route_ptr>			route_list_, route_temp_; // in -> 监听到的连接, out -> 连接到的服务器, temp -> 临时存储
-	wrap_map<std::string, business_ptr>			business_list_, business_temp_;
-	wrap_map<std::string, supervisor_ptr>		supervisor_list_, supervisor_temp_;
+	phmap::flat_hash_map<std::string, auth_ptr>				auth_list_, auth_temp_;
+	phmap::flat_hash_map<std::string, route_ptr>			route_list_, route_temp_; // in -> 监听到的连接, out -> 连接到的服务器, temp -> 临时存储
+	phmap::flat_hash_map<std::string, business_ptr>			business_list_, business_temp_;
+	phmap::flat_hash_map<std::string, supervisor_ptr>		supervisor_list_, supervisor_temp_;
 	load_balancer<business_session, least_connections>	business_lb_;
 
 	expr::concurrent_channel<void(error_code, std::string)> route_info_channel_; // 用于传递新加入的route_server的信息

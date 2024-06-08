@@ -17,8 +17,10 @@ void supervisor_session::start_impl() {
 }
 
 void supervisor_session::stop_impl() {
-	server_.temp_remove<supervisor_ptr>(uuid());
-	server_.perm_remove<supervisor_ptr>(uuid());
+	//auto self = shared_from_this();
+	auto uuid = uuid_;
+	server_.temp_remove<supervisor_ptr>(uuid);
+	server_.perm_remove<supervisor_ptr>(uuid);
 }
 
 net::awaitable<void> supervisor_session::handle_messages_impl(std::shared_ptr<supervisor_session> self) {

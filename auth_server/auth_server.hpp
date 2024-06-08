@@ -4,7 +4,6 @@
 
 #include "../base/server.hpp"
 #include "../tools/load_blancer.hpp"
-#include "../tools/wrap_container.hpp"
 
 namespace leo {
 namespace auth {
@@ -19,8 +18,8 @@ class auth_server
 	: public server<auth_server>
 	, public std::enable_shared_from_this<auth_server> 
 {
-	wrap_map<std::string, client_ptr>	clients_, client_temp_;
-	wrap_map<std::string, route_ptr>	routes_;
+	phmap::flat_hash_map<std::string, client_ptr>	clients_, client_temp_;
+	phmap::flat_hash_map<std::string, route_ptr>	routes_;
 	load_balancer<route_session, least_connections> route_lb_;
 
 public:

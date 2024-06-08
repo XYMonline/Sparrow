@@ -3,7 +3,6 @@
 #define SPARROW_BUSINESS_SERVER_HPP
 
 #include "../base/server.hpp"
-#include "../tools/wrap_container.hpp"
 
 namespace leo {
 namespace business {
@@ -18,7 +17,7 @@ class business_server
 	, public std::enable_shared_from_this<business_server>
 {
 	route_ptr route_;
-	wrap_map<std::string, client_ptr> clients_, client_temp_;
+	phmap::flat_hash_map<std::string, client_ptr> clients_, client_temp_;
 public:
 	business_server(net::io_context& ioc);
 	void start_impl();

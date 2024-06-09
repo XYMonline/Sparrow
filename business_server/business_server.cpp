@@ -50,6 +50,8 @@ void business_server::store_impl() {
 }
 
 bool business_server::connect_route() {
+	if (!is_running_)
+		return false;
 	route_.reset();
 	boost::system::error_code ec;
 	auto route_list = cache_.get_services(table_business_list);
@@ -92,7 +94,7 @@ net::awaitable<void> business_server::load_updater_impl() {
 
 	msg.set_category(message_type::UPDATE_LOAD);
 	load_info.set_address(uri());
-	load_info.set_type(message_type::AUTH_SERVER);
+	load_info.set_type(message_type::BUSINESS_SERVER);
 	load_info.set_memory_total(memory_total());
 
 	while (true) {

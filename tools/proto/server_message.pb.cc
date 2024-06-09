@@ -43,6 +43,7 @@ PROTOBUF_CONSTEXPR route_auth::route_auth(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.token_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.uri_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.uid_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.server_load_)*/nullptr
   , /*decltype(_impl_.category_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
@@ -114,6 +115,7 @@ const uint32_t TableStruct_server_5fmessage_2eproto::offsets[] PROTOBUF_SECTION_
   PROTOBUF_FIELD_OFFSET(::message_type::route_auth, _impl_.server_load_),
   PROTOBUF_FIELD_OFFSET(::message_type::route_auth, _impl_.token_),
   PROTOBUF_FIELD_OFFSET(::message_type::route_auth, _impl_.uri_),
+  PROTOBUF_FIELD_OFFSET(::message_type::route_auth, _impl_.uid_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::message_type::route_business, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -137,8 +139,8 @@ const uint32_t TableStruct_server_5fmessage_2eproto::offsets[] PROTOBUF_SECTION_
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::message_type::load_type)},
   { 12, -1, -1, sizeof(::message_type::route_auth)},
-  { 22, -1, -1, sizeof(::message_type::route_business)},
-  { 31, -1, -1, sizeof(::message_type::route_route)},
+  { 23, -1, -1, sizeof(::message_type::route_business)},
+  { 32, -1, -1, sizeof(::message_type::route_route)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -153,27 +155,27 @@ const char descriptor_table_protodef_server_5fmessage_2eproto[] PROTOBUF_SECTION
   "\tload_type\022\'\n\004type\030\001 \001(\0162\031.message_type."
   "server_type\022\030\n\020session_increase\030\002 \001(\005\022\021\n"
   "\tcpu_usage\030\003 \001(\001\022\023\n\013memory_free\030\004 \001(\004\022\024\n"
-  "\014memory_total\030\005 \001(\004\022\017\n\007address\030\006 \001(\t\"\210\001\n"
+  "\014memory_total\030\005 \001(\004\022\017\n\007address\030\006 \001(\t\"\225\001\n"
   "\nroute_auth\0220\n\010category\030\001 \001(\0162\036.message_"
   "type.message_category\022,\n\013server_load\030\002 \001"
   "(\0132\027.message_type.load_type\022\r\n\005token\030\003 \001"
-  "(\t\022\013\n\003uri\030\004 \001(\t\"}\n\016route_business\0220\n\010cat"
-  "egory\030\001 \001(\0162\036.message_type.message_categ"
-  "ory\022,\n\013server_load\030\002 \001(\0132\027.message_type."
-  "load_type\022\013\n\003uri\030\003 \001(\t\"n\n\013route_route\0220\n"
-  "\010category\030\001 \001(\0162\036.message_type.message_c"
-  "ategory\022\021\n\tload_list\030\002 \003(\t\022\013\n\003uri\030\003 \001(\t\022"
-  "\r\n\005token\030\004 \001(\t*\224\001\n\020message_category\022\024\n\020R"
-  "EQUEST_ALLOCATE\020\000\022\024\n\020ALLOCATE_SUCCESS\020\001\022"
-  "\021\n\rALLOCATE_FAIL\020\002\022\016\n\nROUTE_JOIN\020\003\022\017\n\013RO"
-  "UTE_LEAVE\020\004\022\017\n\013UPDATE_LOAD\020\005\022\017\n\013SERVER_I"
-  "NFO\020\006*E\n\013server_type\022\020\n\014ROUTE_SERVER\020\000\022\023"
-  "\n\017BUSINESS_SERVER\020\001\022\017\n\013AUTH_SERVER\020\002b\006pr"
-  "oto3"
+  "(\t\022\013\n\003uri\030\004 \001(\t\022\013\n\003uid\030\005 \001(\t\"}\n\016route_bu"
+  "siness\0220\n\010category\030\001 \001(\0162\036.message_type."
+  "message_category\022,\n\013server_load\030\002 \001(\0132\027."
+  "message_type.load_type\022\013\n\003uri\030\003 \001(\t\"n\n\013r"
+  "oute_route\0220\n\010category\030\001 \001(\0162\036.message_t"
+  "ype.message_category\022\021\n\tload_list\030\002 \003(\t\022"
+  "\013\n\003uri\030\003 \001(\t\022\r\n\005token\030\004 \001(\t*\224\001\n\020message_"
+  "category\022\024\n\020REQUEST_ALLOCATE\020\000\022\024\n\020ALLOCA"
+  "TE_SUCCESS\020\001\022\021\n\rALLOCATE_FAIL\020\002\022\016\n\nROUTE"
+  "_JOIN\020\003\022\017\n\013ROUTE_LEAVE\020\004\022\017\n\013UPDATE_LOAD\020"
+  "\005\022\017\n\013SERVER_INFO\020\006*E\n\013server_type\022\020\n\014ROU"
+  "TE_SERVER\020\000\022\023\n\017BUSINESS_SERVER\020\001\022\017\n\013AUTH"
+  "_SERVER\020\002b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_server_5fmessage_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_server_5fmessage_2eproto = {
-    false, false, 804, descriptor_table_protodef_server_5fmessage_2eproto,
+    false, false, 817, descriptor_table_protodef_server_5fmessage_2eproto,
     "server_message.proto",
     &descriptor_table_server_5fmessage_2eproto_once, nullptr, 0, 4,
     schemas, file_default_instances, TableStruct_server_5fmessage_2eproto::offsets,
@@ -595,6 +597,7 @@ route_auth::route_auth(const route_auth& from)
   new (&_impl_) Impl_{
       decltype(_impl_.token_){}
     , decltype(_impl_.uri_){}
+    , decltype(_impl_.uid_){}
     , decltype(_impl_.server_load_){nullptr}
     , decltype(_impl_.category_){}
     , /*decltype(_impl_._cached_size_)*/{}};
@@ -616,6 +619,14 @@ route_auth::route_auth(const route_auth& from)
     _this->_impl_.uri_.Set(from._internal_uri(), 
       _this->GetArenaForAllocation());
   }
+  _impl_.uid_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.uid_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_uid().empty()) {
+    _this->_impl_.uid_.Set(from._internal_uid(), 
+      _this->GetArenaForAllocation());
+  }
   if (from._internal_has_server_load()) {
     _this->_impl_.server_load_ = new ::message_type::load_type(*from._impl_.server_load_);
   }
@@ -630,6 +641,7 @@ inline void route_auth::SharedCtor(
   new (&_impl_) Impl_{
       decltype(_impl_.token_){}
     , decltype(_impl_.uri_){}
+    , decltype(_impl_.uid_){}
     , decltype(_impl_.server_load_){nullptr}
     , decltype(_impl_.category_){0}
     , /*decltype(_impl_._cached_size_)*/{}
@@ -641,6 +653,10 @@ inline void route_auth::SharedCtor(
   _impl_.uri_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.uri_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.uid_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.uid_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
@@ -657,6 +673,7 @@ inline void route_auth::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.token_.Destroy();
   _impl_.uri_.Destroy();
+  _impl_.uid_.Destroy();
   if (this != internal_default_instance()) delete _impl_.server_load_;
 }
 
@@ -672,6 +689,7 @@ void route_auth::Clear() {
 
   _impl_.token_.ClearToEmpty();
   _impl_.uri_.ClearToEmpty();
+  _impl_.uid_.ClearToEmpty();
   if (GetArenaForAllocation() == nullptr && _impl_.server_load_ != nullptr) {
     delete _impl_.server_load_;
   }
@@ -720,6 +738,16 @@ const char* route_auth::_InternalParse(const char* ptr, ::_pbi::ParseContext* ct
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
           CHK_(::_pbi::VerifyUTF8(str, "message_type.route_auth.uri"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string uid = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+          auto str = _internal_mutable_uid();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "message_type.route_auth.uid"));
         } else
           goto handle_unusual;
         continue;
@@ -786,6 +814,16 @@ uint8_t* route_auth::_InternalSerialize(
         4, this->_internal_uri(), target);
   }
 
+  // string uid = 5;
+  if (!this->_internal_uid().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_uid().data(), static_cast<int>(this->_internal_uid().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "message_type.route_auth.uid");
+    target = stream->WriteStringMaybeAliased(
+        5, this->_internal_uid(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -814,6 +852,13 @@ size_t route_auth::ByteSizeLong() const {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_uri());
+  }
+
+  // string uid = 5;
+  if (!this->_internal_uid().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_uid());
   }
 
   // .message_type.load_type server_load = 2;
@@ -853,6 +898,9 @@ void route_auth::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PRO
   if (!from._internal_uri().empty()) {
     _this->_internal_set_uri(from._internal_uri());
   }
+  if (!from._internal_uid().empty()) {
+    _this->_internal_set_uid(from._internal_uid());
+  }
   if (from._internal_has_server_load()) {
     _this->_internal_mutable_server_load()->::message_type::load_type::MergeFrom(
         from._internal_server_load());
@@ -886,6 +934,10 @@ void route_auth::InternalSwap(route_auth* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.uri_, lhs_arena,
       &other->_impl_.uri_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.uid_, lhs_arena,
+      &other->_impl_.uid_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(route_auth, _impl_.category_)

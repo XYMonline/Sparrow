@@ -20,11 +20,17 @@ class business_server
 	phmap::flat_hash_map<std::string, client_ptr> clients_, client_temp_;
 public:
 	business_server(net::io_context& ioc);
+
+private:
+	friend server<business_server>;
+
 	void start_impl();
 	void stop_impl();
 	void store_impl();
 
-	bool connect_route();
+
+	void task_request_impl(auto...) {} // do nothing
+	void task_response_impl(std::string key, std::string message) {}
 
 	template<typename SessionPtr> void temp_add_impl(SessionPtr ptr) {}
 	template<typename SessionPtr> void perm_add_impl(std::string key, SessionPtr ptr) {}
@@ -32,6 +38,9 @@ public:
 	template<typename SessionPtr> void perm_remove_impl(std::string key) {}
 
 	net::awaitable<void> load_updater_impl();
+
+public:
+	bool connect_route();
 };
 
 }

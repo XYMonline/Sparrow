@@ -456,6 +456,7 @@ class route_auth final :
   enum : int {
     kTokenFieldNumber = 3,
     kUriFieldNumber = 4,
+    kUidFieldNumber = 5,
     kServerLoadFieldNumber = 2,
     kCategoryFieldNumber = 1,
   };
@@ -485,6 +486,20 @@ class route_auth final :
   const std::string& _internal_uri() const;
   inline PROTOBUF_ALWAYS_INLINE void _internal_set_uri(const std::string& value);
   std::string* _internal_mutable_uri();
+  public:
+
+  // string uid = 5;
+  void clear_uid();
+  const std::string& uid() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_uid(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_uid();
+  PROTOBUF_NODISCARD std::string* release_uid();
+  void set_allocated_uid(std::string* uid);
+  private:
+  const std::string& _internal_uid() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_uid(const std::string& value);
+  std::string* _internal_mutable_uid();
   public:
 
   // .message_type.load_type server_load = 2;
@@ -524,6 +539,7 @@ class route_auth final :
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr token_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr uri_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr uid_;
     ::message_type::load_type* server_load_;
     int category_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -1294,6 +1310,56 @@ inline void route_auth::set_allocated_uri(std::string* uri) {
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:message_type.route_auth.uri)
+}
+
+// string uid = 5;
+inline void route_auth::clear_uid() {
+  _impl_.uid_.ClearToEmpty();
+}
+inline const std::string& route_auth::uid() const {
+  // @@protoc_insertion_point(field_get:message_type.route_auth.uid)
+  return _internal_uid();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void route_auth::set_uid(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.uid_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:message_type.route_auth.uid)
+}
+inline std::string* route_auth::mutable_uid() {
+  std::string* _s = _internal_mutable_uid();
+  // @@protoc_insertion_point(field_mutable:message_type.route_auth.uid)
+  return _s;
+}
+inline const std::string& route_auth::_internal_uid() const {
+  return _impl_.uid_.Get();
+}
+inline void route_auth::_internal_set_uid(const std::string& value) {
+  
+  _impl_.uid_.Set(value, GetArenaForAllocation());
+}
+inline std::string* route_auth::_internal_mutable_uid() {
+  
+  return _impl_.uid_.Mutable(GetArenaForAllocation());
+}
+inline std::string* route_auth::release_uid() {
+  // @@protoc_insertion_point(field_release:message_type.route_auth.uid)
+  return _impl_.uid_.Release();
+}
+inline void route_auth::set_allocated_uid(std::string* uid) {
+  if (uid != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.uid_.SetAllocated(uid, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.uid_.IsDefault()) {
+    _impl_.uid_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:message_type.route_auth.uid)
 }
 
 // -------------------------------------------------------------------

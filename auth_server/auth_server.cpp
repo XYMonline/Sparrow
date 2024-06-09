@@ -49,6 +49,16 @@ void auth_server::store_impl() {
 
 }
 
+void auth_server::task_response_impl(std::string key, std::string message) {
+	auto it = clients_.find(key);
+	if (it != clients_.end()) {
+		it->second->deliver(message);
+	}
+	else {
+		std::println("auth_server::response_impl: client not found");
+	}
+}
+
 net::awaitable<void> auth_server::load_updater_impl() {
 	error_code ec;
 	auto token = net::redirect_error(net::use_awaitable, ec);
@@ -107,7 +117,7 @@ bool auth_server::connect_route() {
 }
 
 void auth_server::check_routes() {
-	if (routes_.empty()) {
+	if (is_running_ && routes_.empty()) {
 		bool res = connect_route();
 		if (!res) {
 			std::println("connect_route failed");

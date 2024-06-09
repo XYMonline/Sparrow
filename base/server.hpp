@@ -14,6 +14,7 @@
 #include <parallel_hashmap/phmap.h>
 
 #include <print>
+#include <utility>
 
 namespace leo {
 ;
@@ -44,12 +45,16 @@ connect_config connect_config_init();
  * - void temp_remove_impl(std::string key)
  * - void perm_remove_impl(std::string key)
  * - net::awaitable<void> load_updater_impl()
+ * - void task_request_impl(Func&& func)
+ * - void task_response_impl(std::string key, std::string message)
  */
 template<typename Derived>
 class server {
 	Derived& derived() {
 		return static_cast<Derived&>(*this);
 	}
+
+	friend Derived;
 
 protected:
 	net::io_context& ioc_;
@@ -58,6 +63,7 @@ protected:
 	storage_service storage_;
 	cancellation_signals signals_;
 	std::string uri_;
+	std::atomic_bool is_running_{ true };
 
 	constexpr static const char* table_route_list{ "route_list" };
 	constexpr static const char* table_auth_list{ "auth_list" };
@@ -111,7 +117,11 @@ public:
 		);
 	}
 
-	void stop() { derived().stop_impl(); }
+	void stop() { 
+		if (!is_running_.exchange(false))
+			return;
+		derived().stop_impl(); 
+	}
 	void store() { derived().store_impl(); }
 	net::awaitable<void> load_updater() { return derived().load_updater_impl(); }
 
@@ -121,6 +131,10 @@ public:
 
 	void set_uri(std::string uri) { uri_ = uri; }
 	const std::string& uri() const { return uri_; }
+
+	template<typename Func> 
+	void task_request(Func&& func) { derived().task_request_impl(std::forward<Func>(func)); }
+	void task_response(std::string key, std::string message) { derived().task_response_impl(std::move(key), std::move(message)); }
 
 	// add and remove session form temp and permanent container
 	template<typename SessionPtr> void temp_add(SessionPtr ptr) { derived().temp_add_impl(std::move(ptr)); }

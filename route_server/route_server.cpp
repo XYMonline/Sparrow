@@ -31,12 +31,6 @@ route_server::route_server(net::io_context& ioc)
 		node_info_distributor(),
 		net::bind_cancellation_slot(signals().slot(), net::detached)
 	);
-
-	net::co_spawn(
-		ioc,
-		load_updater_impl(),
-		net::bind_cancellation_slot(signals().slot(), net::detached)
-	);
 }
 
 void route_server::start_impl() {
@@ -168,11 +162,6 @@ net::awaitable<void> route_server::route_info_distributor() {
 			break;
 		}
 
-		//auto msg = std::make_shared<std::string>(std::move(message));
-		//auth_list_.for_each([msg](auto& session) {
-		//	std::println("auth_list_ session: {}", session->remote_uri());
-		//	session->deliver(*msg);
-		//});
 		for (auto& [key, session] : auth_list_) {
 			std::println("auth_list_ session: {}", session->remote_uri());
 			session->deliver(message);
@@ -197,6 +186,7 @@ net::awaitable<void> route_server::node_info_distributor() {
 	auto interval = std::chrono::seconds(config_loader::load_config()["route_update_interval"].get<int>());
 	std::string buffer;
 	message_type::route_route msg_route;
+	message_type::load_type load2auth;
 	buffer.reserve(1024);
 	msg_route.set_category(message_type::UPDATE_LOAD);
 
@@ -219,14 +209,15 @@ net::awaitable<void> route_server::node_info_distributor() {
 			}
 		}
 
-		//auto shared_msg = std::make_shared<std::string>(msg_route.SerializeAsString());
-		//route_list_.for_each([shared_msg](auto& session) {
-		//	std::println("roiute_list_ session: {}", session->remote_uri());
-		//	session->deliver(*shared_msg);
-		//	});
 		auto shared_msg = msg_route.SerializeAsString();
 		for (auto& [key, session] : route_list_) {
-			std::println("roiute_list_ session: {}", session->remote_uri());
+			session->deliver(shared_msg);
+		}
+
+		load2auth.set_session_increase(session_total_);
+		shared_msg = load2auth.SerializeAsString();
+		std::println("{}", shared_msg);
+		for (auto& [key, session] : auth_list_) {
 			session->deliver(shared_msg);
 		}
 
@@ -282,11 +273,6 @@ net::awaitable<void> route_server::load_updater_impl() {
 			}
 		}
 
-		//auto shared_msg = std::make_shared<std::string>(msg_supr.SerializeAsString());
-		//supervisor_list_.for_each([shared_msg](auto& session) {
-		//	std::println("supervisor_list_ session: {}", session->remote_uri());
-		//	session->deliver(*shared_msg);
-		//	});
 		auto shared_msg = msg_supr.SerializeAsString();
 		for (auto& [key, session] : supervisor_list_) {
 			std::println("supervisor_list_ session: {}", session->remote_uri());
@@ -301,6 +287,16 @@ net::awaitable<void> route_server::load_updater_impl() {
 
 		msg_supr.clear_load_list();
 		timer_flag = true;
+	}
+}
+
+void route_server::task_response_impl(std::string key, std::string message) {
+	auto it = auth_list_.find(key);
+	if (it != auth_list_.end()) {
+		it->second->deliver(message);
+	}
+	else {
+		std::println("auth_server::task_response_impl: client not found");
 	}
 }
 

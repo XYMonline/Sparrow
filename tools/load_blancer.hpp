@@ -37,8 +37,8 @@ struct algorithm_interface {
 	}
 
 	template<typename Func>
-	void commit(const Func& task) {
-		derived().commit_impl(task);
+	void commit(Func&& task) {
+		derived().commit_impl(std::forward<Func>(task));
 	}
 
 	void start() {
@@ -49,13 +49,17 @@ struct algorithm_interface {
 		derived().stop_impl();
 	}
 
-	size_t size() const {
+	size_t size() {
 		return derived().size_impl();
 	}
 
+	bool empty() {
+		return derived().empty_impl();
+	}
+
 	template<typename Func>
-	void for_each(const Func& func) {
-		derived().for_each_impl(func);
+	void for_each(Func&& func) {
+		derived().for_each_impl(std::forward(func));
 	}
 
 private:
@@ -99,7 +103,7 @@ public:
 	}
 
 	template<typename Func>
-	void commit_impl(const Func& task) {
+	void commit_impl(Func task) {
 		auto self = this->shared_from_this();
 		strand_.post([this, task, self] {
 			if (servers_.empty()) {
@@ -135,8 +139,12 @@ public:
 			});
 	}
 
-	size_t size_impl() const {
+	size_t size_impl() {
 		return servers_.size();
+	}
+
+	bool empty_impl() {
+		return servers_.empty();
 	}
 
 	template<typename Func>
@@ -171,7 +179,7 @@ public:
 	}
 
 	template<typename Func>
-	void commit(const Func& f) {
+	void commit(Func&& f) {
 		algorithm_->commit(f);
 	}
 
@@ -183,8 +191,12 @@ public:
 		algorithm_->stop();
 	}
 
-	size_t size() const {
+	size_t size() {
 		return algorithm_->size();
+	}
+
+	bool empty() {
+		return algorithm_->empty();
 	}
 };
 

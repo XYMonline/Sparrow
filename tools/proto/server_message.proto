@@ -32,6 +32,7 @@ message route_auth {
     load_type server_load = 2; // 路由服务器负载
     string token = 3;
     string uri = 4; // 服务器地址
+    string uid = 5; // 用户ID
 }
 
 message route_business {

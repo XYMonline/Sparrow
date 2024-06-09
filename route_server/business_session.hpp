@@ -15,7 +15,10 @@ class business_session
 	: public websocket_session<business_session>
 	, public std::enable_shared_from_this<business_session>
 {
+	using load_type = int;
+
 	route_server& server_;
+	load_type load_{ 0 };
 
 public:
 	business_session(beast::ssl_stream<beast::tcp_stream> stream, route_server& server);
@@ -24,6 +27,10 @@ public:
 
 	void start_impl();
 	void stop_impl();
+
+	const load_type& load() const {
+		return load_;
+	}
 
 	net::awaitable<void> handle_messages_impl(std::shared_ptr<business_session> self);
 

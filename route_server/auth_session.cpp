@@ -1,5 +1,6 @@
 #include "auth_session.hpp"
 #include "route_server.hpp"
+#include "business_session.hpp"
 
 #include "../tools/proto/server_message.pb.h"
 
@@ -23,7 +24,7 @@ net::awaitable<void> auth_session::handle_messages_impl(std::shared_ptr<auth_ses
 		if (!ec) [[likely]] {
 			// handle message
 			if (msg.ParseFromString(message)) [[likely]] {
-				std::println("{}", msg.DebugString());
+				//std::println("{}", msg.DebugString());
 				switch (msg.category()) {
 				case message_type::UPDATE_LOAD:
 				{
@@ -33,14 +34,32 @@ net::awaitable<void> auth_session::handle_messages_impl(std::shared_ptr<auth_ses
 					// 同时将新的节点信息推送到route_info_channel_和node_info_channel_，用于在集群中传递新的节点信息和发送到监控管理器
 					server_.push_node_info(load.SerializeAsString());
 				}
-					break;
+				break;
 				case message_type::REQUEST_ALLOCATE:
-					std::println("request allocate");
+				{
+					if (server_.business_online()) {
+						std::string uri = msg.uri(), uid = msg.uid();
+						std::function task = [uri, uid, self, this](business_ptr business) {
+							message_type::route_auth msg;
+							msg.set_uid(uid);
+							auto remote_uri = business->remote_uri();
+							msg.set_uri(remote_uri);
+							msg.set_category(message_type::ALLOCATE_SUCCESS);
+							std::println("{}", msg.DebugString());
+							server_.task_response(uri, msg.SerializeAsString());
+							};
+						server_.task_request(task);
+					}
+					else {
+						msg.set_category(message_type::ALLOCATE_FAIL);
+						server_.task_response(msg.uri(), msg.SerializeAsString());
+					}
 					break;
 				[[unlikely]] case message_type::SERVER_INFO:
 					server_.perm_add(msg.uri(), shared_from_this());
 					set_remote_uri(msg.uri());
 					break;
+				}
 				}
 			}
 			else {

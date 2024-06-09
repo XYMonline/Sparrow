@@ -45,14 +45,9 @@ class route_server
 	// 暂时用于访问auth_port_, route_port_, business_port_, supervisor_port_, session_total_, node_total_
 	friend class route_session;
 
-private:
-	void connect_route();
-
 public:
 	route_server(net::io_context& ioc);
-	void start_impl();
-	void stop_impl();
-	void store_impl();
+	void connect_route();
 
 	void session_total_inc(int64_t n) { session_total_ += n; }
 
@@ -69,7 +64,23 @@ public:
 	net::awaitable<void> node_info_distributor();
 
 	net::awaitable<void> push_node_info(const std::string& message, bool to_route = true); // 推送到node_info_to_supervisor_, to_route = true -> 同时推送到node_info_to_route_, 
+
+	bool business_online() { return !business_lb_.empty(); }
+
+private:
+	friend server<route_server>;
+
+	void start_impl();
+	void stop_impl();
+	void store_impl();
 	net::awaitable<void> load_updater_impl();
+
+	template<typename Func>
+	void task_request_impl(Func&& func) {
+		business_lb_.commit(std::forward<Func>(func));
+	}
+
+	void task_response_impl(std::string key, std::string message);
 
 	template<typename SessionPtr> void temp_add_impl(SessionPtr ptr);
 	template<typename SessionPtr> void perm_add_impl(std::string key, SessionPtr ptr);
@@ -81,16 +92,16 @@ template<typename SessionPtr>
 inline void route_server::temp_add_impl(SessionPtr ptr) {
 	bool res{ false };
 	if constexpr (std::is_same_v<SessionPtr, auth_ptr>) {
-		res = auth_temp_.emplace(ptr->uuid(), ptr).second; // if the key is already exist, it will return pair<iterator, false>
+		res = auth_temp_.try_emplace(ptr->uuid(), ptr).second; // if the key is already exist, it will return pair<iterator, false>
 	}
 	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
-		res = route_temp_.emplace(ptr->uuid(), ptr).second;
+		res = route_temp_.try_emplace(ptr->uuid(), ptr).second;
 	}
 	else if constexpr (std::is_same_v<SessionPtr, business_ptr>) {
-		res = business_temp_.emplace(ptr->uuid(), ptr).second;
+		res = business_temp_.try_emplace(ptr->uuid(), ptr).second;
 	}
 	else if constexpr (std::is_same_v<SessionPtr, supervisor_ptr>) {
-		res = supervisor_temp_.emplace(ptr->uuid(), ptr).second;
+		res = supervisor_temp_.try_emplace(ptr->uuid(), ptr).second;
 	}
 	if (res) {
 		std::println("temp_session: {} join", ptr->uuid());
@@ -104,23 +115,23 @@ template<typename SessionPtr>
 inline void route_server::perm_add_impl(std::string key, SessionPtr ptr) { // key = uri or other consistent key
 	bool res{ false };
 	if constexpr (std::is_same_v<SessionPtr, auth_ptr>) {
-		if (auth_list_.emplace(key, ptr).second) {
+		if (auth_list_.try_emplace(key, ptr).second) {
 			res = true;
 		}
 	}
 	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
-		if (route_temp_.emplace(key, ptr).second) {
+		if (route_temp_.try_emplace(key, ptr).second) {
 			res = true;
 		}
 	}
 	else if constexpr (std::is_same_v<SessionPtr, business_ptr>) {
-		if (business_list_.emplace(key, ptr).second) {
+		if (business_list_.try_emplace(key, ptr).second) {
 			business_lb_.add_server(key, ptr);
 			res = true;
 		}
 	}
 	else if constexpr (std::is_same_v<SessionPtr, supervisor_ptr>) {
-		if (supervisor_list_.emplace(key, ptr).second) {
+		if (supervisor_list_.try_emplace(key, ptr).second) {
 			res = true;
 		}
 	}

@@ -24,9 +24,20 @@ class auth_server
 
 public:
 	auth_server(net::io_context& ioc);
+
+private:
+	friend server<auth_server>;
+
 	void start_impl();
 	void stop_impl();
 	void store_impl();
+
+	template<typename Func>
+	void task_request_impl(Func&& task) {
+		route_lb_.commit(std::forward<Func>(task));
+	}
+
+	void task_response_impl(std::string key, std::string message);
 
 	template<typename SessionPtr> void temp_add_impl(SessionPtr ptr);
 	template<typename SessionPtr> void perm_add_impl(std::string key, SessionPtr ptr);
@@ -34,6 +45,8 @@ public:
 	template<typename SessionPtr> void perm_remove_impl(std::string key);
 
 	net::awaitable<void> load_updater_impl();
+
+public:
 
 	// connect to route server
 	bool connect_route();
@@ -47,7 +60,7 @@ template<typename SessionPtr>
 inline void auth_server::temp_add_impl(SessionPtr ptr) {
 	bool res{ false };
 	if constexpr (std::is_same_v<SessionPtr, client_ptr>) {
-		res = client_temp_.emplace(ptr->uuid(), ptr).second;
+		res = client_temp_.try_emplace(ptr->uuid(), ptr).second;
 	}
 	if (res) {
 		std::println("temp_session: {} join", ptr->uuid());
@@ -61,13 +74,13 @@ template<typename SessionPtr>
 inline void auth_server::perm_add_impl(std::string key, SessionPtr ptr) {
 	bool res{ false };
 	if constexpr (std::is_same_v<SessionPtr, client_ptr>) {
-		if (clients_.emplace(key, ptr).second) {
+		if (clients_.try_emplace(key, ptr).second) {
 			client_temp_.erase(ptr->uuid());
 			res = true;
 		}
 	}
 	else if constexpr (std::is_same_v<SessionPtr, route_ptr>) {
-		if (routes_.emplace(key, ptr).second) {
+		if (routes_.try_emplace(key, ptr).second) {
 			route_lb_.add_server(key, ptr);
 			// dont print route join message
 			return;

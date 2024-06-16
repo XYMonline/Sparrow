@@ -63,8 +63,7 @@ net::awaitable<void> auth_server::load_updater_impl() {
 	error_code ec;
 	auto token = net::redirect_error(net::use_awaitable, ec);
 	net::steady_timer timer{ ioc_ };
-	auto interval = std::chrono::seconds(config_loader::load_config()["auth_update_interval"].get<int>());
-	int session_increase{ 0 };
+	auto interval = std::chrono::milliseconds(config_loader::load_config()["auth_update_interval"].get<int>());
 	message_type::load_type load_info;
 	message_type::route_auth msg;
 
@@ -76,8 +75,7 @@ net::awaitable<void> auth_server::load_updater_impl() {
 	while (true) {
 		timer.expires_after(interval);
 
-		session_increase = clients_.size() - session_increase;
-		load_info.set_session_increase(session_increase);
+		load_info.set_session_count((int32_t)clients_.size());
 		load_info.set_cpu_usage(cpu_usage());
 		load_info.set_memory_free(memory_free());
 

@@ -155,6 +155,7 @@ protected:
 			|| ec == ssl::error::stream_errors::stream_truncated
 			|| ec == expr::channel_errc::channel_closed
 			|| ec.value() == 167772451 // ssl::error::stream_truncated
+			|| ec == beast::error::timeout
 			) {
 			stop();
 			return;

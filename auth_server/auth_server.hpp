@@ -3,7 +3,7 @@
 #define SPARROW_AUTH_SERVER_HPP
 
 #include "../base/server.hpp"
-#include "../tools/load_blancer.hpp"
+#include "../tools/load_balancer.hpp"
 
 namespace leo {
 namespace auth {

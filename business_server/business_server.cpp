@@ -87,8 +87,7 @@ net::awaitable<void> business_server::load_updater_impl() {
 	error_code ec;
 	auto token = net::redirect_error(net::use_awaitable, ec);
 	net::steady_timer timer{ ioc_ };
-	auto interval = std::chrono::seconds(config_loader::load_config()["business_update_interval"].get<int>());
-	int session_increase{ 0 };
+	auto interval = std::chrono::milliseconds(config_loader::load_config()["business_update_interval"].get<int>());
 	message_type::load_type load_info;
 	message_type::route_business msg;
 
@@ -98,8 +97,9 @@ net::awaitable<void> business_server::load_updater_impl() {
 	load_info.set_memory_total(memory_total());
 
 	while (true) {
-		session_increase = (int)clients_.size() - session_increase;
-		load_info.set_session_increase(session_increase);
+		timer.expires_after(interval);
+
+		load_info.set_session_count((int)clients_.size());
 		load_info.set_cpu_usage(cpu_usage());
 		load_info.set_memory_free(memory_free());
 
@@ -107,7 +107,6 @@ net::awaitable<void> business_server::load_updater_impl() {
 		msg.mutable_server_load()->CopyFrom(load_info);
 		route_->deliver(msg.SerializeAsString());
 
-		timer.expires_after(interval);
 		co_await timer.async_wait(token);
 		if (ec && ec != net::error::operation_aborted) {
 			std::println("auth_server::load_updater_impl: {}", ec.message());

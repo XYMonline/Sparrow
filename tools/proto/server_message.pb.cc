@@ -25,7 +25,7 @@ PROTOBUF_CONSTEXPR load_type::load_type(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.address_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.type_)*/0
-  , /*decltype(_impl_.session_increase_)*/0
+  , /*decltype(_impl_.session_count_)*/0
   , /*decltype(_impl_.cpu_usage_)*/0
   , /*decltype(_impl_.memory_free_)*/uint64_t{0u}
   , /*decltype(_impl_.memory_total_)*/uint64_t{0u}
@@ -100,7 +100,7 @@ const uint32_t TableStruct_server_5fmessage_2eproto::offsets[] PROTOBUF_SECTION_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::message_type::load_type, _impl_.type_),
-  PROTOBUF_FIELD_OFFSET(::message_type::load_type, _impl_.session_increase_),
+  PROTOBUF_FIELD_OFFSET(::message_type::load_type, _impl_.session_count_),
   PROTOBUF_FIELD_OFFSET(::message_type::load_type, _impl_.cpu_usage_),
   PROTOBUF_FIELD_OFFSET(::message_type::load_type, _impl_.memory_free_),
   PROTOBUF_FIELD_OFFSET(::message_type::load_type, _impl_.memory_total_),
@@ -151,31 +151,31 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_server_5fmessage_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\024server_message.proto\022\014message_type\"\235\001\n"
+  "\n\024server_message.proto\022\014message_type\"\232\001\n"
   "\tload_type\022\'\n\004type\030\001 \001(\0162\031.message_type."
-  "server_type\022\030\n\020session_increase\030\002 \001(\005\022\021\n"
-  "\tcpu_usage\030\003 \001(\001\022\023\n\013memory_free\030\004 \001(\004\022\024\n"
-  "\014memory_total\030\005 \001(\004\022\017\n\007address\030\006 \001(\t\"\225\001\n"
-  "\nroute_auth\0220\n\010category\030\001 \001(\0162\036.message_"
-  "type.message_category\022,\n\013server_load\030\002 \001"
-  "(\0132\027.message_type.load_type\022\r\n\005token\030\003 \001"
-  "(\t\022\013\n\003uri\030\004 \001(\t\022\013\n\003uid\030\005 \001(\t\"}\n\016route_bu"
-  "siness\0220\n\010category\030\001 \001(\0162\036.message_type."
-  "message_category\022,\n\013server_load\030\002 \001(\0132\027."
-  "message_type.load_type\022\013\n\003uri\030\003 \001(\t\"n\n\013r"
-  "oute_route\0220\n\010category\030\001 \001(\0162\036.message_t"
-  "ype.message_category\022\021\n\tload_list\030\002 \003(\t\022"
-  "\013\n\003uri\030\003 \001(\t\022\r\n\005token\030\004 \001(\t*\224\001\n\020message_"
-  "category\022\024\n\020REQUEST_ALLOCATE\020\000\022\024\n\020ALLOCA"
-  "TE_SUCCESS\020\001\022\021\n\rALLOCATE_FAIL\020\002\022\016\n\nROUTE"
-  "_JOIN\020\003\022\017\n\013ROUTE_LEAVE\020\004\022\017\n\013UPDATE_LOAD\020"
-  "\005\022\017\n\013SERVER_INFO\020\006*E\n\013server_type\022\020\n\014ROU"
-  "TE_SERVER\020\000\022\023\n\017BUSINESS_SERVER\020\001\022\017\n\013AUTH"
-  "_SERVER\020\002b\006proto3"
+  "server_type\022\025\n\rsession_count\030\002 \001(\005\022\021\n\tcp"
+  "u_usage\030\003 \001(\001\022\023\n\013memory_free\030\004 \001(\004\022\024\n\014me"
+  "mory_total\030\005 \001(\004\022\017\n\007address\030\006 \001(\t\"\225\001\n\nro"
+  "ute_auth\0220\n\010category\030\001 \001(\0162\036.message_typ"
+  "e.message_category\022,\n\013server_load\030\002 \001(\0132"
+  "\027.message_type.load_type\022\r\n\005token\030\003 \001(\t\022"
+  "\013\n\003uri\030\004 \001(\t\022\013\n\003uid\030\005 \001(\t\"}\n\016route_busin"
+  "ess\0220\n\010category\030\001 \001(\0162\036.message_type.mes"
+  "sage_category\022,\n\013server_load\030\002 \001(\0132\027.mes"
+  "sage_type.load_type\022\013\n\003uri\030\003 \001(\t\"n\n\013rout"
+  "e_route\0220\n\010category\030\001 \001(\0162\036.message_type"
+  ".message_category\022\021\n\tload_list\030\002 \003(\t\022\013\n\003"
+  "uri\030\003 \001(\t\022\r\n\005token\030\004 \001(\t*\224\001\n\020message_cat"
+  "egory\022\024\n\020REQUEST_ALLOCATE\020\000\022\024\n\020ALLOCATE_"
+  "SUCCESS\020\001\022\021\n\rALLOCATE_FAIL\020\002\022\016\n\nROUTE_JO"
+  "IN\020\003\022\017\n\013ROUTE_LEAVE\020\004\022\017\n\013UPDATE_LOAD\020\005\022\017"
+  "\n\013SERVER_INFO\020\006*E\n\013server_type\022\020\n\014ROUTE_"
+  "SERVER\020\000\022\023\n\017BUSINESS_SERVER\020\001\022\017\n\013AUTH_SE"
+  "RVER\020\002b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_server_5fmessage_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_server_5fmessage_2eproto = {
-    false, false, 817, descriptor_table_protodef_server_5fmessage_2eproto,
+    false, false, 814, descriptor_table_protodef_server_5fmessage_2eproto,
     "server_message.proto",
     &descriptor_table_server_5fmessage_2eproto_once, nullptr, 0, 4,
     schemas, file_default_instances, TableStruct_server_5fmessage_2eproto::offsets,
@@ -242,7 +242,7 @@ load_type::load_type(const load_type& from)
   new (&_impl_) Impl_{
       decltype(_impl_.address_){}
     , decltype(_impl_.type_){}
-    , decltype(_impl_.session_increase_){}
+    , decltype(_impl_.session_count_){}
     , decltype(_impl_.cpu_usage_){}
     , decltype(_impl_.memory_free_){}
     , decltype(_impl_.memory_total_){}
@@ -270,7 +270,7 @@ inline void load_type::SharedCtor(
   new (&_impl_) Impl_{
       decltype(_impl_.address_){}
     , decltype(_impl_.type_){0}
-    , decltype(_impl_.session_increase_){0}
+    , decltype(_impl_.session_count_){0}
     , decltype(_impl_.cpu_usage_){0}
     , decltype(_impl_.memory_free_){uint64_t{0u}}
     , decltype(_impl_.memory_total_){uint64_t{0u}}
@@ -328,10 +328,10 @@ const char* load_type::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // int32 session_increase = 2;
+      // int32 session_count = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
-          _impl_.session_increase_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          _impl_.session_count_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -406,10 +406,10 @@ uint8_t* load_type::_InternalSerialize(
       1, this->_internal_type(), target);
   }
 
-  // int32 session_increase = 2;
-  if (this->_internal_session_increase() != 0) {
+  // int32 session_count = 2;
+  if (this->_internal_session_count() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_session_increase(), target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_session_count(), target);
   }
 
   // double cpu_usage = 3;
@@ -473,9 +473,9 @@ size_t load_type::ByteSizeLong() const {
       ::_pbi::WireFormatLite::EnumSize(this->_internal_type());
   }
 
-  // int32 session_increase = 2;
-  if (this->_internal_session_increase() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_session_increase());
+  // int32 session_count = 2;
+  if (this->_internal_session_count() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_session_count());
   }
 
   // double cpu_usage = 3;
@@ -521,8 +521,8 @@ void load_type::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROT
   if (from._internal_type() != 0) {
     _this->_internal_set_type(from._internal_type());
   }
-  if (from._internal_session_increase() != 0) {
-    _this->_internal_set_session_increase(from._internal_session_increase());
+  if (from._internal_session_count() != 0) {
+    _this->_internal_set_session_count(from._internal_session_count());
   }
   static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
   double tmp_cpu_usage = from._internal_cpu_usage();

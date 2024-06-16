@@ -15,7 +15,7 @@ class business_session
 	: public websocket_session<business_session>
 	, public std::enable_shared_from_this<business_session>
 {
-	using load_type = int;
+	using load_type = std::atomic_int;
 
 	route_server& server_;
 	load_type load_{ 0 };

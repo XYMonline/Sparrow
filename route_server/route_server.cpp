@@ -163,7 +163,7 @@ net::awaitable<void> route_server::route_info_distributor() {
 		}
 
 		for (auto& [key, session] : auth_list_) {
-			std::println("auth_list_ session: {}", session->remote_uri());
+			//std::println("auth_list_ session: {}", session->remote_uri());
 			session->deliver(message);
 		}
 	}
@@ -183,21 +183,32 @@ net::awaitable<void> route_server::node_info_distributor() {
 	net::steady_timer timer{ ioc_ };
 	std::atomic<bool> timer_flag{ true };
 	auto token = net::redirect_error(net::deferred, ec);
-	auto interval = std::chrono::seconds(config_loader::load_config()["route_update_interval"].get<int>());
+	auto interval = std::chrono::milliseconds(config_loader::load_config()["route_update_interval"].get<int>());
 	std::string buffer;
 	message_type::route_route msg_route;
+	message_type::route_auth msg_auth;
 	message_type::load_type load2auth;
 	buffer.reserve(1024);
 	msg_route.set_category(message_type::UPDATE_LOAD);
+	msg_auth.set_category(message_type::UPDATE_LOAD);
 
 	while (true) {
 		timer.expires_after(interval);
 		timer.async_wait([&timer_flag, this](const error_code& ec) {
 			if (!ec) {
 				timer_flag = false;
-				node_info_to_route_.cancel();
+				node_info_to_supervisor_.cancel();
 			}
 		});
+
+		load2auth.set_session_count(business_list_.empty() ? 0 : (self_load_ / business_list_.size()));
+		msg_auth.mutable_server_load()->CopyFrom(load2auth);
+		auto shared_msg = msg_auth.SerializeAsString();
+		for (auto& [key, session] : auth_list_) {
+			session->deliver(shared_msg);
+		}
+		msg_auth.clear_server_load();
+
 		while (timer_flag) {
 			buffer = co_await node_info_to_supervisor_.async_receive(token);
 			if (!ec) {
@@ -209,15 +220,8 @@ net::awaitable<void> route_server::node_info_distributor() {
 			}
 		}
 
-		auto shared_msg = msg_route.SerializeAsString();
+		shared_msg = msg_route.SerializeAsString();
 		for (auto& [key, session] : route_list_) {
-			session->deliver(shared_msg);
-		}
-
-		load2auth.set_session_increase(session_total_);
-		shared_msg = load2auth.SerializeAsString();
-		std::println("{}", shared_msg);
-		for (auto& [key, session] : auth_list_) {
 			session->deliver(shared_msg);
 		}
 
@@ -238,7 +242,7 @@ net::awaitable<void> route_server::push_node_info(const std::string& message, bo
 	if (to_route) {
 		co_await node_info_to_route_.async_send({}, message, token);
 		if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
-			std::println("push_node_info: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+			std::println("push_node_info(to route): {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
 		}
 	}
 	co_await node_info_to_supervisor_.async_send({}, message, token);

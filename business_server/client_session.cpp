@@ -15,6 +15,10 @@ client_session::client_session(beast::ssl_stream<beast::tcp_stream> stream, busi
 
 }
 
+void client_session::start_impl() {
+	server_.perm_add(uuid(), shared_from_this());
+}
+
 void client_session::stop_impl() {
 	server_.temp_remove<client_session>(uuid());
 	server_.perm_remove<client_session>(uuid());

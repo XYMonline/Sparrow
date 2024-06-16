@@ -20,7 +20,7 @@ enum server_type {
 
 message load_type {
     server_type type = 1; // 服务器类型
-    int32 session_increase = 2; // 会话数量变化
+    int32 session_count = 2; // 会话数量
     double cpu_usage = 3; // CPU使用率
     uint64 memory_free = 4; // 内存剩余
     uint64 memory_total = 5; // 内存总量

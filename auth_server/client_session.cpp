@@ -51,7 +51,7 @@ net::awaitable<void> client_session::handle_messages_impl(std::shared_ptr<client
 				msg.set_uri(route->local_uri()); // route_server根据uri将结果返回给对应的auth_server
 				msg.set_uid(uuid());
 				msg.set_category(message_type::REQUEST_ALLOCATE);
-				std::println("{}", msg.DebugString());
+				//std::println("{}", msg.DebugString());
 				route->deliver(msg.SerializeAsString());
 			});
 		}

@@ -32,16 +32,36 @@ private:
 	void task_request_impl(auto...) {} // do nothing
 	void task_response_impl(std::string key, std::string message) {}
 
-	template<typename SessionPtr> void temp_add_impl(SessionPtr ptr) {}
-	template<typename SessionPtr> void perm_add_impl(std::string key, SessionPtr ptr) {}
-	template<typename SessionPtr> void temp_remove_impl(std::string key) {}
-	template<typename SessionPtr> void perm_remove_impl(std::string key) {}
+	template<typename SessionPtr> void temp_add_impl(SessionPtr ptr);
+	template<typename SessionPtr> void perm_add_impl(std::string key, SessionPtr ptr);
+	template<typename SessionPtr> void temp_remove_impl(std::string key);
+	template<typename SessionPtr> void perm_remove_impl(std::string key);
 
 	net::awaitable<void> load_updater_impl();
 
 public:
 	bool connect_route();
 };
+
+template<typename SessionPtr>
+inline void business_server::temp_add_impl(SessionPtr ptr) {
+	auto res = client_temp_.try_emplace(ptr->uuid(), ptr);
+}
+
+template<typename SessionPtr>
+inline void business_server::perm_add_impl(std::string key, SessionPtr ptr) {
+	auto res = clients_.try_emplace(key, ptr);
+}
+
+template<typename SessionPtr>
+inline void business_server::temp_remove_impl(std::string key) {
+	client_temp_.erase(key);
+}
+
+template<typename SessionPtr>
+inline void business_server::perm_remove_impl(std::string key) {
+	clients_.erase(key);
+}
 
 }
 }

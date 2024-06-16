@@ -3,7 +3,7 @@
 #define SPARROW_ROUTE_SERVER_HPP
 
 #include "../base/server.hpp"
-#include "../tools/load_blancer.hpp"
+#include "../tools/load_balancer.hpp"
 
 #include <atomic>
 
@@ -39,8 +39,8 @@ class route_server
 	uint16_t business_port_{ 0 };
 	uint16_t supervisor_port_{ 0 };
 
-	std::atomic<int64_t> session_total_{ 0 }; // 用于统计所有会话的数量
-	std::atomic<int64_t> node_total_{ 0 }; // 用于统计所有节点的数量
+	std::atomic<int32_t> node_total_{ 0 }; // 用于统计所有节点的数量
+	std::atomic<int32_t> self_load_{ 0 }; // 用于统计本节点的business_server的负载
 
 	// 暂时用于访问auth_port_, route_port_, business_port_, supervisor_port_, session_total_, node_total_
 	friend class route_session;
@@ -49,7 +49,7 @@ public:
 	route_server(net::io_context& ioc);
 	void connect_route();
 
-	void session_total_inc(int64_t n) { session_total_ += n; }
+	void update_self_load(int32_t n) { self_load_ += n; }
 
 	// 创建一个连接到指定uri的route_session
 	route_ptr make_route_session(const std::string& uri);

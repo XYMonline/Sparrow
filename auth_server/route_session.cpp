@@ -32,7 +32,8 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 	auto token = net::redirect_error(net::deferred, ec);
 	std::string message;
 	message_type::route_auth msg;
-	message_type::load_type load;
+
+	int tick = 0;
 
 	while (ws_.is_open()) {
 		message = co_await read_channel_.async_receive(token);
@@ -49,17 +50,17 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 				case message_type::ALLOCATE_FAIL:
 					server_.task_response(msg.uid(), "/allocate fail");
 					break;
-				case message_type::UPDATE_LOAD:
-					load_ = load.session_increase();
+				[[likely]] case message_type::UPDATE_LOAD:
+					load_ = msg.server_load().session_count();
+					++tick;
+					if (tick % 10 == 0) {
+						std::println("{} load: {}", remote_uri_, load_.load());
+					}
 					break;
 				[[unlikely]] default:
 					std::println("Debug message:\n{} {}", msg.DebugString(), msg.SerializeAsString());
 					break;
 				}
-			}
-			else if (load.ParseFromString(message)) [[likely]] {
-				load_ = load.session_increase();
-				std::println("route {} has {} sessions now", remote_uri_, load_);
 			}
 			else {
 				std::println("parse message failed: {}", message);

@@ -235,7 +235,7 @@ class load_type final :
   enum : int {
     kAddressFieldNumber = 6,
     kTypeFieldNumber = 1,
-    kSessionIncreaseFieldNumber = 2,
+    kSessionCountFieldNumber = 2,
     kCpuUsageFieldNumber = 3,
     kMemoryFreeFieldNumber = 4,
     kMemoryTotalFieldNumber = 5,
@@ -263,13 +263,13 @@ class load_type final :
   void _internal_set_type(::supr::server_type value);
   public:
 
-  // int32 session_increase = 2;
-  void clear_session_increase();
-  int32_t session_increase() const;
-  void set_session_increase(int32_t value);
+  // int32 session_count = 2;
+  void clear_session_count();
+  int32_t session_count() const;
+  void set_session_count(int32_t value);
   private:
-  int32_t _internal_session_increase() const;
-  void _internal_set_session_increase(int32_t value);
+  int32_t _internal_session_count() const;
+  void _internal_set_session_count(int32_t value);
   public:
 
   // double cpu_usage = 3;
@@ -309,7 +309,7 @@ class load_type final :
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr address_;
     int type_;
-    int32_t session_increase_;
+    int32_t session_count_;
     double cpu_usage_;
     uint64_t memory_free_;
     uint64_t memory_total_;
@@ -523,24 +523,24 @@ inline void load_type::set_type(::supr::server_type value) {
   // @@protoc_insertion_point(field_set:supr.load_type.type)
 }
 
-// int32 session_increase = 2;
-inline void load_type::clear_session_increase() {
-  _impl_.session_increase_ = 0;
+// int32 session_count = 2;
+inline void load_type::clear_session_count() {
+  _impl_.session_count_ = 0;
 }
-inline int32_t load_type::_internal_session_increase() const {
-  return _impl_.session_increase_;
+inline int32_t load_type::_internal_session_count() const {
+  return _impl_.session_count_;
 }
-inline int32_t load_type::session_increase() const {
-  // @@protoc_insertion_point(field_get:supr.load_type.session_increase)
-  return _internal_session_increase();
+inline int32_t load_type::session_count() const {
+  // @@protoc_insertion_point(field_get:supr.load_type.session_count)
+  return _internal_session_count();
 }
-inline void load_type::_internal_set_session_increase(int32_t value) {
+inline void load_type::_internal_set_session_count(int32_t value) {
   
-  _impl_.session_increase_ = value;
+  _impl_.session_count_ = value;
 }
-inline void load_type::set_session_increase(int32_t value) {
-  _internal_set_session_increase(value);
-  // @@protoc_insertion_point(field_set:supr.load_type.session_increase)
+inline void load_type::set_session_count(int32_t value) {
+  _internal_set_session_count(value);
+  // @@protoc_insertion_point(field_set:supr.load_type.session_count)
 }
 
 // double cpu_usage = 3;

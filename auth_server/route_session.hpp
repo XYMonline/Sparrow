@@ -16,7 +16,7 @@ class route_session
 	: public websocket_session<route_session>
 	, public std::enable_shared_from_this<route_session>
 {
-	using load_type = int;
+	using load_type = std::atomic_int;
 
 	auth_server& server_;
 	load_type load_{ 0 };
@@ -26,7 +26,7 @@ public:
 
 	void start_impl();
 	void stop_impl();
-	load_type load() const {
+	const load_type& load() const {
 		return load_;
 	}
 

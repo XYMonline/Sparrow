@@ -25,7 +25,7 @@ PROTOBUF_CONSTEXPR load_type::load_type(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.address_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.type_)*/0
-  , /*decltype(_impl_.session_increase_)*/0
+  , /*decltype(_impl_.session_count_)*/0
   , /*decltype(_impl_.cpu_usage_)*/0
   , /*decltype(_impl_.memory_free_)*/uint64_t{0u}
   , /*decltype(_impl_.memory_total_)*/uint64_t{0u}
@@ -66,7 +66,7 @@ const uint32_t TableStruct_supervisor_5fmessage_2eproto::offsets[] PROTOBUF_SECT
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::supr::load_type, _impl_.type_),
-  PROTOBUF_FIELD_OFFSET(::supr::load_type, _impl_.session_increase_),
+  PROTOBUF_FIELD_OFFSET(::supr::load_type, _impl_.session_count_),
   PROTOBUF_FIELD_OFFSET(::supr::load_type, _impl_.cpu_usage_),
   PROTOBUF_FIELD_OFFSET(::supr::load_type, _impl_.memory_free_),
   PROTOBUF_FIELD_OFFSET(::supr::load_type, _impl_.memory_total_),
@@ -91,21 +91,21 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_supervisor_5fmessage_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\030supervisor_message.proto\022\004supr\"\225\001\n\tloa"
+  "\n\030supervisor_message.proto\022\004supr\"\222\001\n\tloa"
   "d_type\022\037\n\004type\030\001 \001(\0162\021.supr.server_type\022"
-  "\030\n\020session_increase\030\002 \001(\005\022\021\n\tcpu_usage\030\003"
-  " \001(\001\022\023\n\013memory_free\030\004 \001(\004\022\024\n\014memory_tota"
-  "l\030\005 \001(\004\022\017\n\007address\030\006 \001(\t\"X\n\020route_superv"
-  "isor\0221\n\010category\030\001 \001(\0162\037.supr.route_supe"
-  "rvisor_category\022\021\n\tload_list\030\002 \003(\t*\?\n\031ro"
-  "ute_supervisor_category\022\017\n\013SERVER_LIST\020\000"
-  "\022\021\n\rFORCE_OFFLINE\020\001*E\n\013server_type\022\020\n\014RO"
-  "UTE_SERVER\020\000\022\023\n\017BUSINESS_SERVER\020\001\022\017\n\013AUT"
-  "H_SERVER\020\002b\006proto3"
+  "\025\n\rsession_count\030\002 \001(\005\022\021\n\tcpu_usage\030\003 \001("
+  "\001\022\023\n\013memory_free\030\004 \001(\004\022\024\n\014memory_total\030\005"
+  " \001(\004\022\017\n\007address\030\006 \001(\t\"X\n\020route_superviso"
+  "r\0221\n\010category\030\001 \001(\0162\037.supr.route_supervi"
+  "sor_category\022\021\n\tload_list\030\002 \003(\t*\?\n\031route"
+  "_supervisor_category\022\017\n\013SERVER_LIST\020\000\022\021\n"
+  "\rFORCE_OFFLINE\020\001*E\n\013server_type\022\020\n\014ROUTE"
+  "_SERVER\020\000\022\023\n\017BUSINESS_SERVER\020\001\022\017\n\013AUTH_S"
+  "ERVER\020\002b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_supervisor_5fmessage_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_supervisor_5fmessage_2eproto = {
-    false, false, 418, descriptor_table_protodef_supervisor_5fmessage_2eproto,
+    false, false, 415, descriptor_table_protodef_supervisor_5fmessage_2eproto,
     "supervisor_message.proto",
     &descriptor_table_supervisor_5fmessage_2eproto_once, nullptr, 0, 2,
     schemas, file_default_instances, TableStruct_supervisor_5fmessage_2eproto::offsets,
@@ -167,7 +167,7 @@ load_type::load_type(const load_type& from)
   new (&_impl_) Impl_{
       decltype(_impl_.address_){}
     , decltype(_impl_.type_){}
-    , decltype(_impl_.session_increase_){}
+    , decltype(_impl_.session_count_){}
     , decltype(_impl_.cpu_usage_){}
     , decltype(_impl_.memory_free_){}
     , decltype(_impl_.memory_total_){}
@@ -195,7 +195,7 @@ inline void load_type::SharedCtor(
   new (&_impl_) Impl_{
       decltype(_impl_.address_){}
     , decltype(_impl_.type_){0}
-    , decltype(_impl_.session_increase_){0}
+    , decltype(_impl_.session_count_){0}
     , decltype(_impl_.cpu_usage_){0}
     , decltype(_impl_.memory_free_){uint64_t{0u}}
     , decltype(_impl_.memory_total_){uint64_t{0u}}
@@ -253,10 +253,10 @@ const char* load_type::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // int32 session_increase = 2;
+      // int32 session_count = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
-          _impl_.session_increase_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          _impl_.session_count_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -331,10 +331,10 @@ uint8_t* load_type::_InternalSerialize(
       1, this->_internal_type(), target);
   }
 
-  // int32 session_increase = 2;
-  if (this->_internal_session_increase() != 0) {
+  // int32 session_count = 2;
+  if (this->_internal_session_count() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_session_increase(), target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_session_count(), target);
   }
 
   // double cpu_usage = 3;
@@ -398,9 +398,9 @@ size_t load_type::ByteSizeLong() const {
       ::_pbi::WireFormatLite::EnumSize(this->_internal_type());
   }
 
-  // int32 session_increase = 2;
-  if (this->_internal_session_increase() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_session_increase());
+  // int32 session_count = 2;
+  if (this->_internal_session_count() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_session_count());
   }
 
   // double cpu_usage = 3;
@@ -446,8 +446,8 @@ void load_type::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROT
   if (from._internal_type() != 0) {
     _this->_internal_set_type(from._internal_type());
   }
-  if (from._internal_session_increase() != 0) {
-    _this->_internal_set_session_increase(from._internal_session_increase());
+  if (from._internal_session_count() != 0) {
+    _this->_internal_set_session_count(from._internal_session_count());
   }
   static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
   double tmp_cpu_usage = from._internal_cpu_usage();

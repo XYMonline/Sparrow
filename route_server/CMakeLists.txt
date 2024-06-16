@@ -18,12 +18,21 @@ set (SOURCE_FILES
     "../base/listener.cpp"
     "../base/server.cpp"
     "../tools/proto/server_message.pb.cc"
-    "../tools/proto/controller_message.pb.cc"
+    "../tools/proto/supervisor_message.pb.cc"
 )
 
-add_executable (${PROJECT_NAME} "route_main.cpp" ${SOURCE_FILES} ${BASE_SRC} ${PROTO_SRC}  ${TOOL_SRC} ${SERVICE_SRC} "route_session.cpp" "auth_session.cpp" "business_session.cpp" "route_server.cpp" "controller_session.cpp")
+add_library(prometheus-cpp-interface INTERFACE)
+
+target_link_libraries(prometheus-cpp-interface INTERFACE
+    prometheus-cpp::core
+    prometheus-cpp::pull
+    prometheus-cpp::push
+    prometheus-cpp::util
+)
+
+add_executable (${PROJECT_NAME} "route_main.cpp" ${SOURCE_FILES} ${BASE_SRC} ${PROTO_SRC}  ${TOOL_SRC} ${SERVICE_SRC} "route_session.cpp" "auth_session.cpp" "business_session.cpp" "route_server.cpp" "supervisor_session.cpp")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE redis++::redis++ OpenSSL::SSL protobuf::libprotobuf spdlog::spdlog)
+target_link_libraries(${PROJECT_NAME} PRIVATE common_libraries prometheus-cpp-interface)

@@ -4,11 +4,12 @@
 
 #include <boost/asio.hpp>
 
+#include <parallel_hashmap/phmap.h>
+
 #include <print>
 #include <memory>
 #include <functional>
 #include <list>
-#include <unordered_map>
 #include <map>
 #include <mutex>
 #include <atomic>
@@ -18,14 +19,14 @@ namespace net = boost::asio;
 namespace leo {
 ;
 /*
-	 * Session must have members:
-	 * - int load() -> return a comparable value of the load of the session
-	 * - void stop() -> stop the session
-	 */
+ * Session must have members:
+ * - int load() -> return a comparable value of the load of the session
+ * - void stop() -> stop the session
+ * - void for_each(const Func& func) -> iterate over all sessions
+ */
 template <typename Session, template<typename> class Derived>
 struct algorithm_interface {
 	using session_ptr = std::shared_ptr<Session>;
-	using callback = std::function<void(session_ptr)>;
 
 	void add_server(const std::string& key, session_ptr ptr) {
 		derived().add_server_impl(key, ptr);
@@ -35,8 +36,9 @@ struct algorithm_interface {
 		derived().remove_server_impl(key);
 	}
 
-	void commit(callback task) {
-		derived().commit_impl(task);
+	template<typename Func>
+	void commit(Func&& task) {
+		derived().commit_impl(std::forward<Func>(task));
 	}
 
 	void start() {
@@ -47,8 +49,17 @@ struct algorithm_interface {
 		derived().stop_impl();
 	}
 
-	size_t size() const {
+	size_t size() {
 		return derived().size_impl();
+	}
+
+	bool empty() {
+		return derived().empty_impl();
+	}
+
+	template<typename Func>
+	void for_each(Func&& func) {
+		derived().for_each_impl(std::forward(func));
 	}
 
 private:
@@ -65,11 +76,10 @@ class least_connections
 
 public:
 	using session_ptr = typename algorithm_interface<Session, least_connections>::session_ptr;
-	using callback = typename algorithm_interface<Session, least_connections>::callback;
 
 private:
 	net::io_context::strand strand_;
-	std::map<std::string, session_ptr> servers_;
+	phmap::flat_hash_map<std::string, session_ptr> servers_;
 
 public:
 	least_connections(net::io_context& ioc)
@@ -92,7 +102,8 @@ public:
 			});
 	}
 
-	void commit_impl(callback task) {
+	template<typename Func>
+	void commit_impl(Func task) {
 		auto self = this->shared_from_this();
 		strand_.post([this, task, self] {
 			if (servers_.empty()) {
@@ -128,21 +139,35 @@ public:
 			});
 	}
 
-	size_t size_impl() const {
+	size_t size_impl() {
 		return servers_.size();
+	}
+
+	bool empty_impl() {
+		return servers_.empty();
+	}
+
+	template<typename Func>
+	void for_each_impl(const Func& func) {
+		auto self = this->shared_from_this();
+		strand_.post([this, func, self] {
+			for (auto&& [key, session] : servers_) {
+				func(key, session);
+			}
+			});
 	}
 };
 
 template <typename Session, template<typename> class Algorithm>
 class load_balancer {
 	using session_ptr = typename Algorithm<Session>::session_ptr;
-	using callback = typename Algorithm<Session>::callback;
 
 	std::shared_ptr<Algorithm<Session>> algorithm_;
 
 public:
 	load_balancer(net::io_context& ioc)
-		: algorithm_{ std::make_shared<Algorithm<Session>>(ioc) } {
+		: algorithm_{ std::make_shared<Algorithm<Session>>(ioc) } 
+	{
 	}
 
 	void add_server(const std::string& key, session_ptr ptr) {
@@ -153,7 +178,8 @@ public:
 		algorithm_->remove_server(key);
 	}
 
-	void commit(callback f) {
+	template<typename Func>
+	void commit(Func&& f) {
 		algorithm_->commit(f);
 	}
 
@@ -165,8 +191,12 @@ public:
 		algorithm_->stop();
 	}
 
-	size_t size() const {
+	size_t size() {
 		return algorithm_->size();
+	}
+
+	bool empty() {
+		return algorithm_->empty();
 	}
 };
 

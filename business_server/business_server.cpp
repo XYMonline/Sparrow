@@ -3,6 +3,8 @@
 #include "route_session.hpp"
 #include "client_session.hpp"
 
+#include "../tools/proto/server_message.pb.h"
+
 #include <algorithm>
 #include <random>
 
@@ -48,6 +50,9 @@ void business_server::store_impl() {
 }
 
 bool business_server::connect_route() {
+	if (!is_running_)
+		return false;
+	route_.reset();
 	boost::system::error_code ec;
 	auto route_list = cache_.get_services(table_business_list);
 	std::shuffle(route_list.begin(), route_list.end(), std::random_device{});
@@ -68,7 +73,7 @@ bool business_server::connect_route() {
 			},
 			*this
 		);
-		route_->set_uri(uri_);
+		route_->set_local_uri(uri_);
 		route_->start();
 		std::println("connect to route: {}", uri);
 		break;
@@ -76,6 +81,38 @@ bool business_server::connect_route() {
 
 	// 如果没有找到route_server， 直接退出
 	return route_ != nullptr;
+}
+
+net::awaitable<void> business_server::load_updater_impl() {
+	error_code ec;
+	auto token = net::redirect_error(net::use_awaitable, ec);
+	net::steady_timer timer{ ioc_ };
+	auto interval = std::chrono::milliseconds(config_loader::load_config()["business_update_interval"].get<int>());
+	message_type::load_type load_info;
+	message_type::route_business msg;
+
+	msg.set_category(message_type::UPDATE_LOAD);
+	load_info.set_address(uri());
+	load_info.set_type(message_type::BUSINESS_SERVER);
+	load_info.set_memory_total(memory_total());
+
+	while (true) {
+		timer.expires_after(interval);
+
+		load_info.set_session_count((int)clients_.size());
+		load_info.set_cpu_usage(cpu_usage());
+		load_info.set_memory_free(memory_free());
+
+		//msg.set_allocated_server_load(&load_info);
+		msg.mutable_server_load()->CopyFrom(load_info);
+		route_->deliver(msg.SerializeAsString());
+
+		co_await timer.async_wait(token);
+		if (ec && ec != net::error::operation_aborted) {
+			std::println("auth_server::load_updater_impl: {}", ec.message());
+			break;
+		}
+	}
 }
 
 }

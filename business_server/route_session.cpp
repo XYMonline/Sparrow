@@ -10,12 +10,12 @@ route_session::route_session(beast::ssl_stream<beast::tcp_stream> stream, busine
 	: websocket_session(std::move(stream))
 	, server_(server) 
 {
-	set_role(ssl::stream_base::client);
+	as_client();
 }
 
 void route_session::start_impl() {
 	message_type::route_business msg;
-	msg.set_uri(uri_);
+	msg.set_uri(local_uri_);
 	msg.set_category(message_type::SERVER_INFO);
 	deliver(msg.SerializeAsString());
 }

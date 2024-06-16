@@ -35,9 +35,11 @@ protected:
 	expr::concurrent_channel<void()> write_lock_; // fix, it will be used in writer and handle_messages
 
 	std::string uuid_;
-	std::string uri_;
+	std::string local_uri_;
+	std::string remote_uri_;
 
 	ssl::stream_base::handshake_type role_{ ssl::stream_base::server };
+	std::atomic<bool> is_open_{ true };
 
 public:
 	websocket_session(beast::ssl_stream<beast::tcp_stream>&& stream)
@@ -45,7 +47,7 @@ public:
 		, read_channel_{ ws_.get_executor(), 4096 } // a big buffer
 		, write_channel_{ ws_.get_executor(), 4096 }
 		, write_lock_{ ws_.get_executor(), 1 }  // 1 for single writer
-		, uuid_{ uuid_gen()}
+		, uuid_{ uuid_gen() }
 	{
 		ws_.set_option(
 			websocket::stream_base::timeout::suggested(
@@ -56,6 +58,9 @@ public:
 				res.set(http::field::server, // 子类重新设置服务器名称
 				derived().server_name());
 			}));
+
+		// important, set binary mode, send ptobobuf message as binary
+		ws_.binary(true);
 	}
 
 	~websocket_session() {
@@ -66,8 +71,20 @@ public:
 		return uuid_;
 	}
 
-	void set_uri(const std::string& uri) {
-		uri_ = uri;
+	void set_local_uri(const std::string& uri) {
+		local_uri_ = uri;
+	}
+
+	void set_remote_uri(const std::string& uri) {
+		remote_uri_ = uri;
+	}
+
+	std::string local_uri() const {
+		return local_uri_;
+	}
+
+	std::string remote_uri() const {
+		return remote_uri_;
 	}
 
 	// pass message to the write queue
@@ -94,6 +111,10 @@ public:
 	}
 
 	void stop() {
+		if (this && !is_open_.exchange(false)) {
+			return;
+		}
+
 		boost::system::error_code ec;
 		ws_.close(websocket::close_code::normal, ec);
 		read_channel_.cancel();
@@ -111,8 +132,12 @@ public:
 		derived().stop_impl();
 	}
 
-	void set_role(ssl::stream_base::handshake_type role) {
-		role_ = role;
+	void as_server() {
+		role_ = ssl::stream_base::server;
+	}
+
+	void as_client() {
+		role_ = ssl::stream_base::client;
 	}
 
 protected:
@@ -128,6 +153,9 @@ protected:
 			|| ec == net::error::connection_aborted 
 			|| ec == net::error::connection_reset
 			|| ec == ssl::error::stream_errors::stream_truncated
+			|| ec == expr::channel_errc::channel_closed
+			|| ec.value() == 167772451 // ssl::error::stream_truncated
+			|| ec == beast::error::timeout
 			) {
 			stop();
 			return;
@@ -156,7 +184,7 @@ private:
 			}
 		}
 		else {
-			co_await ws_.async_handshake(uri_, "/", token);
+			co_await ws_.async_handshake(local_uri_, "/", token);
 			if (ec) {
 				this->fail(ec, "handshake_connect");
 				co_return;
@@ -188,7 +216,7 @@ private:
 		beast::flat_buffer buffer;
 		buffer.reserve(4096);
 		size_t n{ 0 };
-		while (ws_.is_open()) [[likely]] {
+		while (ws_.is_open()) {
 			n = co_await ws_.async_read(buffer, token);// 解析消息
 			if (!ec) {
 				//std::println("message: {}", beast::buffers_to_string(buffer.data()));
@@ -210,7 +238,7 @@ private:
 		auto token = net::redirect_error(net::deferred, ec);
 		std::string message;
 		message.reserve(4096);
-		while (ws_.is_open()) [[likely]] {
+		while (ws_.is_open()) {
 			message = co_await write_channel_.async_receive(token);
 			if (!ec) {
 				co_await write_lock_.async_send(token);

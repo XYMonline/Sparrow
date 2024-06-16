@@ -3,9 +3,10 @@
 #include "auth_session.hpp"
 #include "route_session.hpp"
 #include "business_session.hpp"
-#include "controller_session.hpp"
+#include "supervisor_session.hpp"
 
 #include "../tools/proto/server_message.pb.h"
+#include "../tools/proto/supervisor_message.pb.h"
 
 #include <format>
 
@@ -15,7 +16,21 @@ namespace route {
 route_server::route_server(net::io_context& ioc)
 	: server{ ioc }
 	, business_lb_{ ioc }
+	, route_info_channel_{ ioc, 4096 }
+	, node_info_to_supervisor_{ ioc, 4096 }
+	, node_info_to_route_{ ioc, 4096 }
 {
+	net::co_spawn(
+		ioc, 
+		route_info_distributor(), 
+		net::bind_cancellation_slot(signals().slot(), net::detached)
+	);
+
+	net::co_spawn(
+		ioc,
+		node_info_distributor(),
+		net::bind_cancellation_slot(signals().slot(), net::detached)
+	);
 }
 
 void route_server::start_impl() {
@@ -23,7 +38,7 @@ void route_server::start_impl() {
 	auth_port_			= listener->run<route_server, auth_session>(*this, "route_auth_port_range");
 	route_port_			= listener->run<route_server, route_session>(*this, "route_route_port_range");
 	business_port_		= listener->run<route_server, business_session>(*this, "route_business_port_range");
-	controller_port_	= listener->run<route_server, controller_session>(*this, "route_controller_port_range");
+	supervisor_port_	= listener->run<route_server, supervisor_session>(*this, "route_supervisor_port_range");
 
 	// signup services
 	std::string host{ config_loader::load_config()["host"].get<std::string>() };
@@ -88,8 +103,8 @@ void route_server::stop_impl() {
 	if (business_port_) {
 		cache_.remove_service(table_business_list, std::format("{}:{}", host, business_port_));
 	}
-	if (controller_port_) {
-		cache_.remove_service(table_controller_list, std::format("{}:{}", host, controller_port_));
+	if (supervisor_port_) {
+		cache_.remove_service(table_supervisor_list, std::format("{}:{}", host, supervisor_port_));
 	}
 
 	// clear all the sessions
@@ -99,8 +114,8 @@ void route_server::stop_impl() {
 	route_temp_.clear();
 	business_list_.clear(); 
 	business_temp_.clear();
-	controller_list_.clear();
-	controller_temp_.clear();
+	supervisor_list_.clear();
+	supervisor_temp_.clear();
 	business_lb_.stop();
 
 }
@@ -127,12 +142,166 @@ route_ptr route_server::make_route_session(const std::string& uri) {
 			* this
 		);
 
-	route->set_role(ssl::stream_base::client);
-	route->set_uri(uri_);
+	route->as_client();
+	route->set_local_uri(uri_);
 
 	// 将新建的route_session加入发起连接的列表
 	perm_add(uri, route);
 	return route;
+}
+
+net::awaitable<void> route_server::route_info_distributor() {
+	error_code ec;
+	auto token = net::redirect_error(net::deferred, ec);
+	std::string message;
+	message.reserve(1024);
+	while (true) {
+		message = co_await route_info_channel_.async_receive(token);
+		if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
+			std::println("route_info_distributor: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+			break;
+		}
+
+		for (auto& [key, session] : auth_list_) {
+			//std::println("auth_list_ session: {}", session->remote_uri());
+			session->deliver(message);
+		}
+	}
+}
+
+net::awaitable<void> route_server::push_route_info(const std::string& message) {
+	error_code ec;
+	auto token = net::redirect_error(net::deferred, ec);
+	co_await route_info_channel_.async_send({}, message, token);
+	if (ec && ec != net::error::operation_aborted) {
+		std::println("push_route_info: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+	}
+}
+
+net::awaitable<void> route_server::node_info_distributor() {
+	error_code ec;
+	net::steady_timer timer{ ioc_ };
+	std::atomic<bool> timer_flag{ true };
+	auto token = net::redirect_error(net::deferred, ec);
+	auto interval = std::chrono::milliseconds(config_loader::load_config()["route_update_interval"].get<int>());
+	std::string buffer;
+	message_type::route_route msg_route;
+	message_type::route_auth msg_auth;
+	message_type::load_type load2auth;
+	buffer.reserve(1024);
+	msg_route.set_category(message_type::UPDATE_LOAD);
+	msg_auth.set_category(message_type::UPDATE_LOAD);
+
+	while (true) {
+		timer.expires_after(interval);
+		timer.async_wait([&timer_flag, this](const error_code& ec) {
+			if (!ec) {
+				timer_flag = false;
+				node_info_to_supervisor_.cancel();
+			}
+		});
+
+		load2auth.set_session_count(business_list_.empty() ? 0 : (self_load_ / business_list_.size()));
+		msg_auth.mutable_server_load()->CopyFrom(load2auth);
+		auto shared_msg = msg_auth.SerializeAsString();
+		for (auto& [key, session] : auth_list_) {
+			session->deliver(shared_msg);
+		}
+		msg_auth.clear_server_load();
+
+		while (timer_flag) {
+			buffer = co_await node_info_to_supervisor_.async_receive(token);
+			if (!ec) {
+				msg_route.add_load_list(std::move(buffer));
+			}
+			else if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
+				std::println("node_info_distributor: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+				break;
+			}
+		}
+
+		shared_msg = msg_route.SerializeAsString();
+		for (auto& [key, session] : route_list_) {
+			session->deliver(shared_msg);
+		}
+
+		co_await timer.async_wait(token);
+		if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
+			std::println("route_server::node_info_distributor: {}", ec.message());
+			break;
+		}
+
+		msg_route.clear_load_list();
+		timer_flag = true;
+	}
+}
+
+net::awaitable<void> route_server::push_node_info(const std::string& message, bool to_route) {
+	error_code ec;
+	auto token = net::redirect_error(net::deferred, ec);
+	if (to_route) {
+		co_await node_info_to_route_.async_send({}, message, token);
+		if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
+			std::println("push_node_info(to route): {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+		}
+	}
+	co_await node_info_to_supervisor_.async_send({}, message, token);
+	if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
+		std::println("push_node_info: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+	}
+}
+
+net::awaitable<void> route_server::load_updater_impl() {
+	error_code ec;
+	net::steady_timer timer{ ioc_ };
+	std::atomic<bool> timer_flag{ true };
+	auto token = net::redirect_error(net::use_awaitable, ec);
+	auto interval = std::chrono::seconds(config_loader::load_config()["route_update_interval"].get<int>());
+	supr::route_supervisor msg_supr;
+	std::string buffer;
+	buffer.reserve(1024);
+	msg_supr.set_category(supr::SERVER_LIST);
+
+	while (true) {
+		timer.expires_after(interval);
+		timer.async_wait([&timer_flag, this](const error_code& ec) {
+			if (!ec) {
+				timer_flag = false;
+				node_info_to_supervisor_.cancel();
+			}
+		});
+		while (timer_flag) {
+			buffer = co_await node_info_to_supervisor_.async_receive(token);
+			if (!ec) {
+				msg_supr.add_load_list(std::move(buffer));
+			}
+		}
+
+		auto shared_msg = msg_supr.SerializeAsString();
+		for (auto& [key, session] : supervisor_list_) {
+			std::println("supervisor_list_ session: {}", session->remote_uri());
+			session->deliver(shared_msg);
+		}
+
+		co_await timer.async_wait(token);
+		if (ec && ec != net::error::operation_aborted) {
+			std::println("route_server::load_updater_impl: {}", ec.message());
+			break;
+		}
+
+		msg_supr.clear_load_list();
+		timer_flag = true;
+	}
+}
+
+void route_server::task_response_impl(std::string key, std::string message) {
+	auto it = auth_list_.find(key);
+	if (it != auth_list_.end()) {
+		it->second->deliver(message);
+	}
+	else {
+		std::println("auth_server::task_response_impl: client not found");
+	}
 }
 
 }

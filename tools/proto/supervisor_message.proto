@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package supr;
+
+enum route_supervisor_category {
+	SERVER_LIST = 0; // 服务器列表
+	FORCE_OFFLINE = 1; // 强制下线
+}
+
+enum server_type {
+	ROUTE_SERVER = 0; // 路由服务器
+	BUSINESS_SERVER = 1; // 业务服务器
+    AUTH_SERVER = 2; // 验证服务器
+}
+
+message load_type {
+    server_type type = 1; // 服务器类型
+    int32 session_count = 2; // 会话数量
+    double cpu_usage = 3; // CPU使用率
+    uint64 memory_free = 4; // 内存剩余
+    uint64 memory_total = 5; // 内存总量
+    string address = 6; // 服务器地址
+}
+
+message route_supervisor {
+	route_supervisor_category category = 1;
+	repeated string load_list = 2; // 以字节串保存的load_type
+}

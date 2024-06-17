@@ -8,7 +8,8 @@ cmake_install.cmake
 install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
-_deps
 .vs/
 out/
 vcpkg/
+conf/ca/cert_chain.pem
+conf/ca/private_key.pem

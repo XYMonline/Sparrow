@@ -88,6 +88,8 @@ public:
 
 	~least_connections() = default;
 
+private:
+	friend algorithm_interface<Session, least_connections>;
 	void add_server_impl(const std::string& key, session_ptr ptr) {
 		auto self = this->shared_from_this();
 		strand_.post([this, key, ptr, self] {
@@ -197,6 +199,11 @@ public:
 
 	bool empty() {
 		return algorithm_->empty();
+	}
+
+	template<typename Func>
+	void for_each(Func&& func) {
+		algorithm_->for_each(std::forward(func));
 	}
 };
 

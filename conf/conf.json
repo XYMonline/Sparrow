@@ -14,8 +14,8 @@
 
   "doc_root": "",
   "preload_user_info_limit": 500,
-  "cert_path": "../conf/ca/cert_chain.pem",
-  "private_key_path": "../conf/ca/private_key.pem",
+  "cert_path": "",
+  "private_key_path": "",
 
   "dh_path": "../conf/ca/dh_params.pem",
   "db_host": "127.0.0.1",

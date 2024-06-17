@@ -22,17 +22,17 @@ void auth_server::start_impl() {
 	auto port = listener->run<auth_server, client_session>(*this, "auth_client_port_range");
 	if (port) {
 		set_uri(std::format("{}:{}", config_loader::load_config()["host"].get<std::string>(), port));
-		std::println("listening on port: {}", port);
+		log().info("listening on port: {}", port);
 
 		res = connect_route();
 	}
 	else {
-		std::println("auth_server::start_impl: failed to start listener");
+		log().error("failed to start listener");
 	}
 
 	// 连接不到route_server就停止
 	if (!res) {
-		std::println("connect_route failed");
+		log().error("connect_route failed");
 		stop();
 		std::exit(1);
 	}
@@ -55,7 +55,7 @@ void auth_server::task_response_impl(std::string key, std::string message) {
 		it->second->deliver(message);
 	}
 	else {
-		std::println("auth_server::response_impl: client not found");
+		log().error("auth_server::response_impl: client not found");
 	}
 }
 
@@ -94,7 +94,7 @@ net::awaitable<void> auth_server::load_updater_impl() {
 
 		co_await timer.async_wait(token);
 		if (ec && ec != net::error::operation_aborted) {
-			std::println("auth_server::load_updater_impl: {}", ec.message());
+			log().error("load_updater_impl: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
 			break;
 		}
 	}
@@ -118,7 +118,7 @@ void auth_server::check_routes() {
 	if (is_running_ && routes_.empty()) {
 		bool res = connect_route();
 		if (!res) {
-			std::println("connect_route failed");
+			log().error("connect_route failed");
 			stop();
 			std::exit(1);
 		}
@@ -133,7 +133,7 @@ void auth_server::make_route_session(const std::string& uri) {
 	tcp::socket socket{ ioc_ };
 	net::connect(socket, endpoints, ec);
 	if (ec) {
-		std::println("connect_route failed: {} code: {}", ec.message(), ec.value());
+		log().error("connect_route failed: {} code: {}", ec.message(), ec.value());
 		return;
 	}
 	auto route = std::make_shared<route_session>(
@@ -147,7 +147,7 @@ void auth_server::make_route_session(const std::string& uri) {
 	route->set_local_uri(uri_);
 	route->start();
 	perm_add(uri, route);
-	std::println("connect to route: {}", uri);
+	log().info("connect to route: {}", uri);
 }
 
 }

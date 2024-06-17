@@ -36,12 +36,12 @@ net::awaitable<void> supervisor_session::handle_messages_impl(std::shared_ptr<su
 			if (msg.ParseFromString(message)) [[likely]] {
 				switch (msg.category()) {
 				default:
-					std::println("Debug message:\n{}", msg.DebugString());
+					server_.log().debug("Debug message:\n{}", msg.DebugString());
 					break;
 				}
 			}
 			else {
-				std::println("parse message failed: {}", message);
+				server_.log().error("parse message failed: {}", message);
 			}
 		}
 		else {

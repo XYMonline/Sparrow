@@ -16,6 +16,8 @@ class supervisor_session
 	: public websocket_session<supervisor_session>
 	, public std::enable_shared_from_this<supervisor_session>
 {
+	friend websocket_session<supervisor_session>;
+
 	route_server& server_;
 
 public:

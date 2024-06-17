@@ -9,10 +9,7 @@
 namespace leo {
 
 class logger {
-	std::shared_ptr<spdlog::logger> debug_;
-	std::shared_ptr<spdlog::logger> error_;
-	std::shared_ptr<spdlog::logger> info_;
-	std::shared_ptr<spdlog::logger> warn_;
+	std::shared_ptr<spdlog::logger> log_;
 
 public:
 	logger(const std::string& type, 
@@ -23,10 +20,25 @@ public:
 		int daily_hour = 0, 
 		int daily_minute = 0);
 
-	void debug(const std::string& msg);
-	void error(const std::string& msg);
-	void info(const std::string& msg);
-	void warn(const std::string& msg);
+	template<typename... Args> 
+	void debug(spdlog::format_string_t<Args...> fmt, Args&& ...args) {
+		log_->debug(fmt, std::forward<Args>(args)...);
+	}
+
+	template<typename... Args> 
+	void error(spdlog::format_string_t<Args...> fmt, Args&& ...args) {
+		log_->error(fmt, std::forward<Args>(args)...);
+	}
+
+	template<typename... Args> 
+	void info(spdlog::format_string_t<Args...> fmt, Args&& ...args) {
+		log_->info(fmt, std::forward<Args>(args)...);
+	}
+
+	template<typename... Args> 
+	void warn(spdlog::format_string_t<Args...> fmt, Args&& ...args) {
+		log_->warn(fmt, std::forward<Args>(args)...);
+	}
 
 	std::shared_ptr<spdlog::logger> raw_logger(const std::string& type);
 };

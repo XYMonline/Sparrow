@@ -52,18 +52,18 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 					break;
 				[[likely]] case message_type::UPDATE_LOAD:
 					load_ = msg.server_load().session_count();
-					++tick;
-					if (tick % 10 == 0) {
-						std::println("{} load: {}", remote_uri_, load_.load());
-					}
+					//++tick;
+					//if (tick % 10 == 0) {
+					//	std::println("{} load: {}", remote_uri_, load_.load());
+					//}
 					break;
 				[[unlikely]] default:
-					std::println("Debug message:\n{} {}", msg.DebugString(), msg.SerializeAsString());
+					server_.log().debug("{}", msg.DebugString());
 					break;
 				}
 			}
 			else {
-				std::println("parse message failed: {}", message);
+				server_.log().error("parse message failed, message: {}", message);
 			}
 			msg.Clear();
 		}

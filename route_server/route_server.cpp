@@ -44,15 +44,15 @@ void route_server::start_impl() {
 	std::string host{ config_loader::load_config()["host"].get<std::string>() };
 	if (auth_port_) {
 		cache_.signup_service(table_auth_list, std::format("{}:{}", host, auth_port_));
-		std::println("listening autn_server on port: {}", auth_port_);
+		log().info("listening autn_server on port: {}", auth_port_);
 	}
 	if (business_port_) {
 		cache_.signup_service(table_business_list, std::format("{}:{}", host, business_port_));
-		std::println("listening business_server on port: {}", business_port_);
+		log().info("listening business_server on port: {}", business_port_);
 	}
 	if (route_port_) {
 		cache_.signup_service(table_route_list, std::format("{}:{}", host, route_port_));
-		std::println("listening route_server on port: {}", route_port_);
+		log().info("listening route_server on port: {}", route_port_);
 		set_uri(std::format("{}:{}", host, route_port_));
 
 		connect_route();
@@ -72,12 +72,12 @@ void route_server::connect_route() {
 
 		auto route = make_route_session(uri);
 		if (!route) {
-			std::println("connect_route failed: {} code: {}", ec.message(), ec.value());
+			log().error("connect_route failed: {} code: {}", ec.message(), ec.value());
 			continue;
 		}
 
 		route->start();
-		std::println("connect to route: {}", uri);
+		log().info("connect to route: {}", uri);
 
 		message_type::route_route msg;
 		msg.set_category(message_type::SERVER_INFO);
@@ -88,7 +88,7 @@ void route_server::connect_route() {
 	}
 
 	if (!find_route) {
-		std::println("no another route server found");
+		log().info("no another route server found");
 	}
 }
 
@@ -158,7 +158,7 @@ net::awaitable<void> route_server::route_info_distributor() {
 	while (true) {
 		message = co_await route_info_channel_.async_receive(token);
 		if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
-			std::println("route_info_distributor: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+			log().error("route_info_distributor: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
 			break;
 		}
 
@@ -174,7 +174,7 @@ net::awaitable<void> route_server::push_route_info(const std::string& message) {
 	auto token = net::redirect_error(net::deferred, ec);
 	co_await route_info_channel_.async_send({}, message, token);
 	if (ec && ec != net::error::operation_aborted) {
-		std::println("push_route_info: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+		log().error("push_route_info: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
 	}
 }
 
@@ -215,7 +215,7 @@ net::awaitable<void> route_server::node_info_distributor() {
 				msg_route.add_load_list(std::move(buffer));
 			}
 			else if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
-				std::println("node_info_distributor: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+				log().error("node_info_distributor: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
 				break;
 			}
 		}
@@ -227,7 +227,7 @@ net::awaitable<void> route_server::node_info_distributor() {
 
 		co_await timer.async_wait(token);
 		if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
-			std::println("route_server::node_info_distributor: {}", ec.message());
+			log().error("node_info_distributor: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
 			break;
 		}
 
@@ -242,12 +242,12 @@ net::awaitable<void> route_server::push_node_info(const std::string& message, bo
 	if (to_route) {
 		co_await node_info_to_route_.async_send({}, message, token);
 		if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
-			std::println("push_node_info(to route): {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+			log().error("push_node_info(to route): {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
 		}
 	}
 	co_await node_info_to_supervisor_.async_send({}, message, token);
 	if (ec && ec != net::error::operation_aborted && ec != expr::error::channel_cancelled) {
-		std::println("push_node_info: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
+		log().error("push_node_info: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
 	}
 }
 
@@ -279,13 +279,13 @@ net::awaitable<void> route_server::load_updater_impl() {
 
 		auto shared_msg = msg_supr.SerializeAsString();
 		for (auto& [key, session] : supervisor_list_) {
-			std::println("supervisor_list_ session: {}", session->remote_uri());
+			log().debug("load_updater_impl: {}", session->remote_uri());
 			session->deliver(shared_msg);
 		}
 
 		co_await timer.async_wait(token);
 		if (ec && ec != net::error::operation_aborted) {
-			std::println("route_server::load_updater_impl: {}", ec.message());
+			log().error("load_updater_impl: {}, code: {}, name: {}", ec.message(), ec.value(), ec.category().name());
 			break;
 		}
 
@@ -300,7 +300,7 @@ void route_server::task_response_impl(std::string key, std::string message) {
 		it->second->deliver(message);
 	}
 	else {
-		std::println("auth_server::task_response_impl: client not found");
+		log().error("auth_server::task_response_impl: client not found");
 	}
 }
 

@@ -104,10 +104,10 @@ inline void route_server::temp_add_impl(SessionPtr ptr) {
 		res = supervisor_temp_.try_emplace(ptr->uuid(), ptr).second;
 	}
 	if (res) {
-		std::println("temp_session: {} join", ptr->uuid());
+		log().debug("temp_session: {} join", ptr->uuid());
 	}
 	else {
-		std::println("temp_session: {} already exist", ptr->uuid());
+		log().error("temp_session: {} already exist", ptr->uuid());
 	}
 }
 
@@ -136,12 +136,12 @@ inline void route_server::perm_add_impl(std::string key, SessionPtr ptr) { // ke
 		}
 	}
 	if (res) {
-		std::println("perm_session: {} join, uuid: {}", key, ptr->uuid());
+		log().debug("perm_session: {} join, uuid: {}", key, ptr->uuid());
 		this->temp_remove<SessionPtr>(ptr->uuid());
 		++node_total_;
 	}
 	else {
-		std::println("perm_session: {} already exist", key);
+		log().error("perm_session: {} already exist", key);
 	}
 }
 
@@ -163,7 +163,7 @@ inline void route_server::temp_remove_impl(std::string key) {
 		res = supervisor_temp_.erase(key);
 	}
 	if (res) {
-		std::println("temp_session: {} leave", key);
+		log().debug("temp_session: {} leave", key);
 	}
 }
 
@@ -184,7 +184,7 @@ inline void route_server::perm_remove_impl(std::string key) {
 		res = supervisor_list_.erase(key);
 	}
 	if (res) {
-		std::println("perm_session: {} leave", key);
+		log().debug("perm_session: {} leave", key);
 		--node_total_;
 	}
 }

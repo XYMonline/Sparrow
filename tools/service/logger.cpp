@@ -24,38 +24,23 @@ logger::logger(const std::string& type,
 		fs::create_directory(path);
 	}
 
-	fs::path log_path{ path };
-	auto debug_path{ log_path / "debug.log" };
-	auto error_path{ log_path / "error.log" };
-	auto info_path{ log_path / "info.log" };
-	auto warn_path{ log_path / "warn.log" };
+	auto log_path = fs::path{ path };
 
 	if (type == "console") {
-		debug_ = spdlog::stdout_color_mt("debug");
-		error_ = spdlog::stdout_color_mt("error");
-		info_ = spdlog::stdout_color_mt("info");
-		warn_ = spdlog::stdout_color_mt("warn");
+		log_ = spdlog::stdout_color_mt("console");
 	}
 	else if (type == "basic_file") {
-		debug_ = spdlog::basic_logger_mt("debug", debug_path.string());
-		error_ = spdlog::basic_logger_mt("error", error_path.string());
-		info_ = spdlog::basic_logger_mt("info", info_path.string());
-		warn_ = spdlog::basic_logger_mt("warn", warn_path.string());
+		log_ = spdlog::basic_logger_mt("basic_file", log_path.string() + "log.txt");
 	}
 	else if (type == "rotating_file") {
-		debug_ = spdlog::rotating_logger_mt("debug", debug_path.string(), max_file_size, max_files);
-		error_ = spdlog::rotating_logger_mt("error", error_path.string(), max_file_size, max_files);
-		info_ = spdlog::rotating_logger_mt("info", info_path.string(), max_file_size, max_files);
-		warn_ = spdlog::rotating_logger_mt("warn", warn_path.string(), max_file_size, max_files);
+		log_ = spdlog::rotating_logger_mt("rotating_file", log_path.string() + "rotateing.txt", max_file_size, max_files);
 	}
 	else if (type == "daily_file") {
-		debug_ = spdlog::daily_logger_mt("debug", debug_path.string(), daily_hour, daily_minute);
-		error_ = spdlog::daily_logger_mt("error", error_path.string(), daily_hour, daily_minute);
-		info_ = spdlog::daily_logger_mt("info", info_path.string(), daily_hour, daily_minute);
-		warn_ = spdlog::daily_logger_mt("warn", warn_path.string(), daily_hour, daily_minute);
+		log_ = spdlog::daily_logger_mt("daily_file", log_path.string() + "daily.txt", daily_hour, daily_minute);
 	}
 	else {
-		std::println("Invalid logger type: {}", type);
+		raw_logger("console")->error("Invalid logger type: {}, set type console", type);
+		log_ = spdlog::stdout_color_mt("console");
 	}
 
 	if (level == "debug") {
@@ -77,25 +62,9 @@ logger::logger(const std::string& type,
 	//	spdlog::set_level(spdlog::level::critical);
 	//}
 	else {
-		std::println("Unsupport logger level: {}, set level: off", level);
+		raw_logger("console")->error("Unsupport logger level: {}, set level: off", level);
 		spdlog::set_level(spdlog::level::off);
 	}
-}
-
-void logger::debug(const std::string& msg) {
-	debug_->debug(msg);
-}
-
-void logger::error(const std::string& msg) {
-	error_->error(msg);
-}
-
-void logger::info(const std::string& msg) {
-	info_->info(msg);
-}
-
-void logger::warn(const std::string& msg) {
-	warn_->warn(msg);
 }
 
 std::shared_ptr<spdlog::logger> logger::raw_logger(const std::string& type) {

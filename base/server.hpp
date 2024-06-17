@@ -99,7 +99,7 @@ public:
 	}
 
 	~server() {
-		std::println("server::~server");
+		log().info("server::~server");
 	}
 
 	logger& log() { return *log_; }
@@ -118,7 +118,7 @@ public:
 		);
 
 		if (!connect_cache || !connect_storage) {
-			std::println("error: server::start: failed to connect to cache or storage");
+			log().error("server::start: failed to connect to cache or storage");
 			return;
 		}
 

@@ -4,7 +4,7 @@
 
 #include "net.hpp"
 #include "beast.hpp"
-#include "logger.hpp"
+//#include "logger.hpp"
 
 #include "../tools/tool_func.hpp"
 #include "../tools/cancellation_signals.hpp"

@@ -10,6 +10,7 @@
 #include "../tools/config_loader.hpp"
 #include "../tools/server_certificate.hpp"
 #include "../tools/sysinfo/sysinfo.hpp"
+#include "../tools/service/logger.hpp"
 
 #include <parallel_hashmap/phmap.h>
 
@@ -62,6 +63,7 @@ protected:
 	cache_service cache_;
 	storage_service storage_;
 	cancellation_signals signals_;
+	std::unique_ptr<logger> log_;
 	std::string uri_;
 	std::atomic_bool is_running_{ true };
 
@@ -76,11 +78,31 @@ public:
 		, ctx_{ ssl::context::tlsv12 }
 		, storage_{ ioc, ctx_ } 
 	{
+		auto& conf = config_loader::load_config();
+		std::string log_type = conf.contains("log_type") ? conf["log_type"].get<std::string>() : "console";
+		std::string log_level = conf.contains("log_level") ? conf["log_level"].get<std::string>() : "debug";
+		std::string log_path = conf.contains("log_path") ? conf["log_path"].get<std::string>() : "../logs";
+		size_t max_file_size = conf.contains("max_file_size") ? conf["max_file_size"].get<size_t>() : 104857600;
+		int max_files = conf.contains("max_files") ? conf["max_files"].get<int>() : 3;
+		int daily_hour = conf.contains("daily_hour") ? conf["daily_hour"].get<int>() : 0;
+		int daily_minute = conf.contains("daily_minute") ? conf["daily_minute"].get<int>() : 0;
+
+		log_ = std::make_unique<logger>(
+			log_type,
+			log_level,
+			log_path,
+			max_file_size,
+			max_files,
+			daily_hour,
+			daily_minute
+		);
 	}
 
 	~server() {
 		std::println("server::~server");
 	}
+
+	logger& log() { return *log_; }
 
 	void start() {
 		error_code ec;

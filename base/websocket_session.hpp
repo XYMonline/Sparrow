@@ -4,7 +4,7 @@
 
 #include "net.hpp"
 #include "beast.hpp"
-#include "logger.hpp"
+//#include "logger.hpp"
 
 #include "../tools/tool_func.hpp"
 #include "../tools/cancellation_signals.hpp"
@@ -22,6 +22,9 @@ namespace leo {
  * - std::string server_name : return the server name
  * - cancellation_signals& signals : return the signals from the server
  * - void start_impl : start the session
+ * - void stop_impl : stop the session
+ * 
+ * friend websocket_session<Derived> is required
  */
 template<typename Derived>
 class websocket_session {
@@ -64,7 +67,7 @@ public:
 	}
 
 	~websocket_session() {
-		std::println("destroy {} uuid: {}", derived().server_name(), derived().uuid());
+		derived().server_.log().debug("destroy {} uuid: {}", derived().server_name(), derived().uuid());
 	}
 
 	std::string uuid() const {
@@ -128,7 +131,7 @@ public:
 		write_channel_.close();
 		write_lock_.close();
 
-		std::println("shutdown and close socket");
+		derived().server_.log().debug("shutdown and close socket");
 		derived().stop_impl();
 	}
 
@@ -160,7 +163,7 @@ protected:
 			stop();
 			return;
 		}
-		std::println("{} {}: {} code: {} name: {}", who, what, ec.message(), ec.value(), ec.category().name());
+		derived().server_.log().error("{} {}: {} code: {} name: {}", who, what, ec.message(), ec.value(), ec.category().name());
 	}
 
 private:
@@ -219,7 +222,7 @@ private:
 		while (ws_.is_open()) {
 			n = co_await ws_.async_read(buffer, token);// 解析消息
 			if (!ec) {
-				//std::println("message: {}", beast::buffers_to_string(buffer.data()));
+				//derived().server_.log()->debug("message: {}", beast::buffers_to_string(buffer.data()));
 				co_await read_channel_.async_send({}, beast::buffers_to_string(buffer.data()), token);
 				buffer.consume(n);
 			}

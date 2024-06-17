@@ -17,6 +17,8 @@ class client_session
         : public websocket_session<client_session>
         , public std::enable_shared_from_this<client_session>
 {
+    friend websocket_session<client_session>;
+
 	business_server& server_;
 
 public:

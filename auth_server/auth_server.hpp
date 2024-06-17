@@ -63,10 +63,10 @@ inline void auth_server::temp_add_impl(SessionPtr ptr) {
 		res = client_temp_.try_emplace(ptr->uuid(), ptr).second;
 	}
 	if (res) {
-		std::println("temp_session: {} join", ptr->uuid());
+		log().debug("temp_session: {} join", ptr->uuid());
 	}
 	else {
-		std::println("temp_session: {} already exist", ptr->uuid());
+		log().debug("temp_session: {} already exist", ptr->uuid());
 	}
 }
 
@@ -87,10 +87,10 @@ inline void auth_server::perm_add_impl(std::string key, SessionPtr ptr) {
 		}
 	}
 	if (res) {
-		std::println("perm_session: {} join", key);
+		log().debug("perm_session: {} join", key);
 	}
 	else {
-		std::println("perm_session: {} already exist", key);
+		log().debug("perm_session: {} already exist", key);
 	}
 }
 
@@ -101,7 +101,7 @@ inline void auth_server::temp_remove_impl(std::string key) {
 		res = client_temp_.erase(key);
 	}
 	if (res) {
-		std::println("temp_session: {} leave", key);
+		log().debug("temp_session: {} leave", key);
 	}
 }
 
@@ -116,7 +116,7 @@ inline void auth_server::perm_remove_impl(std::string key) {
 		res = routes_.erase(key);
 	}
 	if (res) {
-		std::println("perm_session: {} leave", key);
+		log().debug("perm_session: {} leave", key);
 	}
 }
 

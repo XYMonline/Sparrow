@@ -23,16 +23,16 @@ void business_server::start_impl() {
 
 	if (port) {
 		set_uri(std::format("{}:{}", config_loader::load_config()["host"].get<std::string>(), port));
-		std::println("listening on port: {}", port);
+		log().info("listening on port: {}", port);
 
 		res = connect_route();
 	}
 	else {
-		std::println("business_server::start_impl: failed to start listener");
+		log().error("business_server::start_impl: failed to start listener");
 	}
 
 	if (!res) {
-		std::println("connect_route failed");
+		log().error("connect_route failed");
 		stop();
 		std::exit(1);
 	}
@@ -63,7 +63,7 @@ bool business_server::connect_route() {
 		tcp::socket socket{ ioc_ };
 		net::connect(socket, endpoints, ec);
 		if (ec) {
-			std::println("connect_route failed: {} code: {}", ec.message(), ec.value());
+			log().error("connect_route failed: {} code: {}", ec.message(), ec.value());
 			continue;
 		}
 		route_ = std::make_shared<route_session>(
@@ -75,7 +75,7 @@ bool business_server::connect_route() {
 		);
 		route_->set_local_uri(uri_);
 		route_->start();
-		std::println("connect to route: {}", uri);
+		log().info("connect to route: {}", uri);
 		break;
 	}
 
@@ -109,7 +109,7 @@ net::awaitable<void> business_server::load_updater_impl() {
 
 		co_await timer.async_wait(token);
 		if (ec && ec != net::error::operation_aborted) {
-			std::println("auth_server::load_updater_impl: {}", ec.message());
+			log().error("auth_server::load_updater_impl: {}", ec.message());
 			break;
 		}
 	}

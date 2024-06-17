@@ -15,6 +15,8 @@ class auth_session
 	: public websocket_session<auth_session>
 	, public std::enable_shared_from_this<auth_session>
 {
+	friend websocket_session<auth_session>;
+
 	route_server& server_;
 
 public:

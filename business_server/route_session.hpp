@@ -16,6 +16,8 @@ class route_session
 	: public websocket_session<route_session>
 	, public std::enable_shared_from_this<route_session>
 {
+	friend websocket_session<route_session>;
+
 	business_server& server_;
 	std::string route_uri_;
 

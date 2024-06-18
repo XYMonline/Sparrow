@@ -36,7 +36,7 @@ net::awaitable<void> business_session::handle_messages_impl(std::shared_ptr<busi
 			// handle message
 			if (msg.ParseFromString(message)) [[likely]] {
 				if (msg.category() != message_type::UPDATE_LOAD)
-					server_.log().debug("{}", msg.DebugString());
+					log().debug("{}", msg.DebugString());
 				switch (msg.category()) {
 				case message_type::UPDATE_LOAD:
 				{
@@ -60,7 +60,7 @@ net::awaitable<void> business_session::handle_messages_impl(std::shared_ptr<busi
 				}
 			}
 			else {
-				server_.log().error("parse message failed: {}", message);
+				log().error("parse message failed: {}", message);
 			}
 		}
 		else {

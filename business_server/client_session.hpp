@@ -24,13 +24,14 @@ class client_session
 public:
     client_session(beast::ssl_stream<beast::tcp_stream> stream, business_server& server);
 
+    static std::string server_name();
+	cancellation_signals& signals();
+
+private:
     void start_impl();
     void stop_impl();
 
     net::awaitable<void> handle_messages_impl(std::shared_ptr<client_session> self);
-
-    static std::string server_name();
-	cancellation_signals& signals();
 };
 
 }

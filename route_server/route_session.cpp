@@ -54,7 +54,7 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 				[[unlikely]] case message_type::SERVER_INFO:
 					server_.perm_add(msg.uri(), shared_from_this());
 					set_remote_uri(msg.uri());
-					server_.log().info("connect to route: {}", msg.uri());
+					log().info("connect to route: {}", msg.uri());
 					break;
 				case message_type::ROUTE_JOIN:
 					auth_msg.set_uri(msg.uri());
@@ -62,13 +62,13 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 					co_await server_.push_route_info(auth_msg.SerializeAsString());
 					break;
 				[[unlikely]] default:
-					server_.log().debug("{}", msg.DebugString());
+					log().debug("{}", msg.DebugString());
 					break;
 				}
 				auth_msg.Clear();
 			}
 			else [[unlikely]] {
-				server_.log().error("parse message failed: {}", message);
+				log().error("parse message failed: {}", message);
 			}
 			msg.Clear();
 		}

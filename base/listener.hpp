@@ -6,6 +6,7 @@
 #include "beast.hpp"
 #include "../tools/cancellation_signals.hpp"
 #include "../tools/config_loader.hpp"
+#include "../tools/service/logger.hpp"
 
 #include <print>
 #include <vector>
@@ -32,7 +33,7 @@ public:
 	}
 
 	~listener() {
-		std::println("listener destructed");
+		log().debug("listener destructed");
 	}
 
 	uint16_t acceptor_init(std::string_view port_range_key);
@@ -42,7 +43,7 @@ public:
 		uint16_t port{ acceptor_init(port_range_key) };
 
 		if (!port) {
-			std::println("Listener not initialized");
+			log().error("Listener not initialized");
 			return port;
 		}
 
@@ -63,7 +64,6 @@ public:
 		while ((co_await net::this_coro::cancellation_state).cancelled() == net::cancellation_type::none) {
 			tcp::socket socket = co_await acceptor->async_accept(token);
 			if (!ec) {
-				//std::println("{}", typeid(Session).name());
 				auto session = std::make_shared<Session>(
 					beast::ssl_stream<beast::tcp_stream>{
 						beast::tcp_stream{ std::move(socket) },

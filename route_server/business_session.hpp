@@ -27,20 +27,20 @@ public:
 
 	~business_session() = default;
 
-	void start_impl();
-	void stop_impl();
-
 	const load_type& load() const {
 		return load_;
 	}
-
-	net::awaitable<void> handle_messages_impl(std::shared_ptr<business_session> self);
 
 	static std::string server_name() {
 		return "route_server business_session";
 	}
 
 	cancellation_signals& signals();
+
+private:
+	void start_impl();
+	void stop_impl();
+	net::awaitable<void> handle_messages_impl(std::shared_ptr<business_session> self);
 };
 }
 }

@@ -7,27 +7,31 @@
   "route_supervisor_port_range": [ 12700, 12799 ],
   "business_client_port_range": [ 12800, 12899 ],
 
-  "auth_update_interval": 1000,
-  "route_update_interval": 1000,
-  "business_update_interval": 1000,
+  "auth_update_interval": 500,
+  "route_update_interval": 500,
+  "business_update_interval": 500,
   "work_thread_num": 8,
 
   "doc_root": "",
   "preload_user_info_limit": 500,
   "cert_path": "",
-  "private_key_path": "",
-
+  "key_path": "",
   "dh_path": "../conf/ca/dh_params.pem",
+
   "db_host": "127.0.0.1",
   "db_port": 3306,
   "db_name": "sparrow",
+  "db_user": "root",
+  "db_password": "1234",
 
-  "cache_host": "127.0.0.7",
+  "cache_host": "127.0.0.1",
   "cache_port": 6379,
+  "cache_user": "",
+  "cache_password": "",
 
   "log_type": "console",
   "log_level": "debug",
-  "log_path": "../log",
+  "log_path": "../logs",
   "log_file_size": 104857600,
   "log_file_num": 10
 }

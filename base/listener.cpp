@@ -6,7 +6,7 @@ void listener::fail(boost::system::error_code ec, char const* what) {
 	if (ec == net::error::operation_aborted || ec == net::error::address_in_use) {
 		return;
 	}
-	std::println("{}: {} code: {}", what, ec.message(), ec.value());
+	log().error("{}: {} code: {}", what, ec.message(), ec.value());
 }
 
 uint16_t listener::acceptor_init(std::string_view port_range_key) {
@@ -18,7 +18,7 @@ uint16_t listener::acceptor_init(std::string_view port_range_key) {
 		std::tie(port_start, port_stop) = conf[port_range_key].get<std::array<uint16_t, 2>>();
 	}
 	catch (std::exception const& e) {
-		std::println("config error: {}", e.what());
+		log().error("config error: {}", e.what());
 		return 0;
 	}
 

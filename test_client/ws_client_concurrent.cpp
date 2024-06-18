@@ -3,8 +3,9 @@
 #include <boost/beast.hpp>
 #include <boost/beast/ssl.hpp>
 
-#include <thread>
+#include <fstream>
 #include <print>
+#include <thread>
 #include <vector>
 
 namespace net = boost::asio;
@@ -46,9 +47,10 @@ int main() {
 	ssl_ctx.set_verify_mode(ssl::verify_none);
 	ssl_ctx.set_verify_callback(ssl::rfc2818_verification("localhost"));
 	
-	std::vector<std::jthread> threads;
-	int interval = 5;
+	int interval = 3;
 	int count = 10;
+	std::vector<std::jthread> threads;
+	threads.reserve(count);
 
 	for (int i = 0; i < count; ++i) {
 		threads.emplace_back([&] {

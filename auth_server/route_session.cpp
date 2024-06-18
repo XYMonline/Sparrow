@@ -58,12 +58,12 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 					//}
 					break;
 				[[unlikely]] default:
-					server_.log().debug("{}", msg.DebugString());
+					log().debug("{}", msg.DebugString());
 					break;
 				}
 			}
 			else {
-				server_.log().error("parse message failed, message: {}", message);
+				log().error("parse message failed, message: {}", message);
 			}
 			msg.Clear();
 		}

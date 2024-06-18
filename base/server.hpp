@@ -61,9 +61,8 @@ protected:
 	net::io_context& ioc_;
 	ssl::context ctx_;
 	cache_service cache_;
-	storage_service storage_;
+	//storage_service storage_;
 	cancellation_signals signals_;
-	std::unique_ptr<logger> log_;
 	std::string uri_;
 	std::atomic_bool is_running_{ true };
 
@@ -76,49 +75,45 @@ public:
 	server(net::io_context& ioc)
 		: ioc_{ ioc }
 		, ctx_{ ssl::context::tlsv12 }
-		, storage_{ ioc, ctx_ } 
+		//, storage_{ ioc, ctx_ } 
 	{
-		auto& conf = config_loader::load_config();
-		std::string log_type = conf.contains("log_type") ? conf["log_type"].get<std::string>() : "console";
-		std::string log_level = conf.contains("log_level") ? conf["log_level"].get<std::string>() : "debug";
-		std::string log_path = conf.contains("log_path") ? conf["log_path"].get<std::string>() : "../logs";
-		size_t max_file_size = conf.contains("max_file_size") ? conf["max_file_size"].get<size_t>() : 104857600;
-		int max_files = conf.contains("max_files") ? conf["max_files"].get<int>() : 3;
-		int daily_hour = conf.contains("daily_hour") ? conf["daily_hour"].get<int>() : 0;
-		int daily_minute = conf.contains("daily_minute") ? conf["daily_minute"].get<int>() : 0;
-
-		log_ = std::make_unique<logger>(
-			log_type,
-			log_level,
-			log_path,
-			max_file_size,
-			max_files,
-			daily_hour,
-			daily_minute
-		);
+		
 	}
 
 	~server() {
 		log().info("server::~server");
 	}
 
-	logger& log() { return *log_; }
-
 	void start() {
 		error_code ec;
-		auto [db_host, db_name, db_user, db_password, cache_user, cache_password, cert_path, key_path, dh_path, db_port, options] = connect_config_init();
+		auto [db_host, 
+			db_name, 
+			db_user, 
+			db_password, 
+			cache_user, 
+			cache_password, 
+			cert_path, 
+			key_path, 
+			dh_path, 
+			db_port, 
+			options] = connect_config_init();
 		
 		bool connect_cache = cache_.init(options);
-		bool connect_storage = storage_.init(
-			db_host,
-			db_user,
-			db_password,
-			db_name,
-			db_port
-		);
+		//bool connect_storage = storage_.init(
+		//	db_host,
+		//	db_user,
+		//	db_password,
+		//	db_name,
+		//	db_port
+		//);
 
-		if (!connect_cache || !connect_storage) {
-			log().error("server::start: failed to connect to cache or storage");
+		//if (!connect_cache || !connect_storage) {
+		//	log().error("server::start: failed to connect to cache or storage");
+		//	return;
+		//}
+
+		if (!connect_cache) {
+			log().error("server::start: failed to connect to cache");
 			return;
 		}
 
@@ -147,7 +142,7 @@ public:
 	void store() { derived().store_impl(); }
 	net::awaitable<void> load_updater() { return derived().load_updater_impl(); }
 
-	storage_service& storage() { return storage_; }
+	//storage_service& storage() { return storage_; }
 	cache_service& cache() { return cache_; }
 	cancellation_signals& signals() { return signals_; }
 

@@ -4,6 +4,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include <memory>
 #include <string>
 
 namespace leo {
@@ -42,6 +43,8 @@ public:
 
 	std::shared_ptr<spdlog::logger> raw_logger(const std::string& type);
 };
+
+logger& log();
 
 } // namespace leo
 

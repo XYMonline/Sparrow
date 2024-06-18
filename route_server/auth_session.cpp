@@ -61,7 +61,7 @@ net::awaitable<void> auth_session::handle_messages_impl(std::shared_ptr<auth_ses
 				}
 			}
 			else {
-				server_.log().error("parse message failed, message: {}", message);
+				log().error("parse message failed, message: {}", message);
 			}
 		}
 		else {

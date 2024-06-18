@@ -1,4 +1,5 @@
 #include "logger.hpp"
+#include "../config_loader.hpp"
 
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -29,13 +30,13 @@ logger::logger(const std::string& type,
 	if (type == "console") {
 		log_ = spdlog::stdout_color_mt("console");
 	}
-	else if (type == "basic_file") {
+	else if (type == "basic") {
 		log_ = spdlog::basic_logger_mt("basic_file", log_path.string() + "log.txt");
 	}
-	else if (type == "rotating_file") {
+	else if (type == "rotating") {
 		log_ = spdlog::rotating_logger_mt("rotating_file", log_path.string() + "rotateing.txt", max_file_size, max_files);
 	}
-	else if (type == "daily_file") {
+	else if (type == "daily") {
 		log_ = spdlog::daily_logger_mt("daily_file", log_path.string() + "daily.txt", daily_hour, daily_minute);
 	}
 	else {
@@ -69,6 +70,22 @@ logger::logger(const std::string& type,
 
 std::shared_ptr<spdlog::logger> logger::raw_logger(const std::string& type) {
 	return spdlog::get(type);
+}
+
+logger& log() {
+	static bool init{ false };
+	static auto& conf = config_loader::load_config();
+	static logger log_{
+		conf.contains("log_type") ? conf["log_type"].get<std::string>() : "console",
+		conf.contains("log_level") ? conf["log_level"].get<std::string>() : "debug",
+		conf.contains("log_path") ? conf["log_path"].get<std::string>() : "../logs",
+		conf.contains("max_file_size") ? conf["max_file_size"].get<size_t>() : 104857600,
+		conf.contains("max_files") ? conf["max_files"].get<int>() : 3,
+		conf.contains("daily_hour") ? conf["daily_hour"].get<int>() : 0,
+		conf.contains("daily_minute") ? conf["daily_minute"].get<int>() : 0,
+	};
+
+	return log_;
 }
 
 } // namespace leo

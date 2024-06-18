@@ -26,7 +26,7 @@ void route_session::stop_impl() {
 
 	bool res = server_.connect_route();
 	if (!res) {
-		server_.log().error("connect to route failed");
+		log().error("connect to route failed");
 		server_.stop();
 		std::exit(1);
 	}
@@ -46,12 +46,12 @@ net::awaitable<void> route_session::handle_messages_impl(std::shared_ptr<route_s
 				switch (msg.category()) {
 				
 				default:
-					server_.log().debug("Debug message:\n{}", msg.DebugString());
+					log().debug("Debug message:\n{}", msg.DebugString());
 					break;
 				}
 			}
 			else {
-				server_.log().error("parse message failed: {}", message);
+				log().error("parse message failed: {}", message);
 			}
 		}
 		else {

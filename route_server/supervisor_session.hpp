@@ -25,16 +25,16 @@ public:
 
 	~supervisor_session() = default;
 
-	void start_impl();
-	void stop_impl();
-
-	net::awaitable<void> handle_messages_impl(std::shared_ptr<supervisor_session> self);
-
 	static std::string server_name() {
 		return "route_server supervisor_session";
 	}
 
 	cancellation_signals& signals();
+
+private:
+	void start_impl();
+	void stop_impl();
+	net::awaitable<void> handle_messages_impl(std::shared_ptr<supervisor_session> self);
 };
 }
 }

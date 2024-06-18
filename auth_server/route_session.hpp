@@ -25,18 +25,18 @@ class route_session
 
 public:
 	route_session(beast::ssl_stream<beast::tcp_stream> stream, auth_server& server);
-
-	void start_impl();
-	void stop_impl();
 	const load_type& load() const {
 		return load_;
 	}
 
-	net::awaitable<void> handle_messages_impl(std::shared_ptr<route_session> self);
 
 	static std::string server_name();
-
 	cancellation_signals& signals();
+
+private:
+	void start_impl();
+	void stop_impl();
+	net::awaitable<void> handle_messages_impl(std::shared_ptr<route_session> self);
 };
 }
 }
